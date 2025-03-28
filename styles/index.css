@@ -1,0 +1,113 @@
+
+.menu a, li{
+    display:inline-block;
+    width: 150px;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 20px;
+    text-align: center;
+    text-decoration: none;
+  }
+  h1{
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 24px;
+    color: white;
+    margin-left: 10px;
+    margin-right: 50px;
+  }
+  .menu {
+    background-color: #009933;
+    padding: 10px 0;
+    height: 100px;
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    margin: 0;
+    padding: 20px 0;
+  }
+
+  .footer {
+    background-color: #009933;
+    color: white;
+    text-align: left;
+    padding: 10px 0;
+    font-size: 14px;
+    height: 250px;
+    font-family: 'Montserrat', sans-serif;
+  }
+  .footer h3, p{
+    margin-left: 10px;
+  }
+
+.container{
+    position:relative;
+    background-image: url('main_image.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 150vh;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+}
+
+/*.content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 165, 0, 0.5); /* Orange color with 50% transparency
+  z-index: 1;
+}*/ 
+
+.content {
+  /*position: relative;*/ 
+  /*background-image: url(secondary_image.jpg);*/ 
+  /*background-size: cover;*/ 
+  /*background-repeat: no-repeat;*/ 
+  /*background-position: center;*/ 
+  padding: 10px;
+  margin: 10px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  text-align: justify;
+  background-color: #f0f0f0;
+  height: 900px;
+  color: black;
+  z-index: 2; /* Ensure the content is above the overlay */
+}
+
+/* .content > * {
+  position: relative;
+  z-index: 2; /* Ensure the text is above the overlay
+}*/ 
+
+h2{
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 40px;
+    color: #009933;
+    text-align: left;
+}
+#sobre-nosotros{
+    background-color:white;
+    color: black;
+    padding: 10px;
+    margin: 10px;
+    background-color: #f0f0f0;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 20px;
+    text-align: justify;
+    height: 800px;
+}
+
+#sobre_ellos{
+    width: 800px;
+    border-radius: 20px;
+}
