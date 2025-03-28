@@ -94,6 +94,19 @@ h2{
     color: #009933;
     text-align: left;
 }
+
+.images{
+  display: flex;
+}
+
+.photo_MP {
+  width: 100%;
+}
+
+.subheading_SN{
+  text-align: center;
+}
+
 #sobre-nosotros{
     background-color:white;
     color: black;
