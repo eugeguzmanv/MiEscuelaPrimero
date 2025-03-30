@@ -34,12 +34,26 @@
     text-align: left;
     padding: 10px 0;
     font-size: 14px;
-    height: 250px;
+    height: 330px;
     font-family: 'Montserrat', sans-serif;
   }
   .footer h3, p{
     margin-left: 10px;
   }
+  table{
+    width: 100%;
+    display: flex;
+  }
+  td{
+    padding: 10px 40px;
+    text-align: center;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 15px;
+  }
+ .footer a{
+    text-decoration: none;
+    color: white;
+ }
 
 .container{
     position:relative;
@@ -123,4 +137,18 @@ h2{
 #sobre_ellos{
     width: 800px;
     border-radius: 20px;
+}
+#logo{
+  border-radius: 100%;
+}
+.icons{
+  width: 20px;
+  height: 20px;
+  margin-left: 10px;
+  border-radius: 100%;
+  margin-right: 10px;
+}
+.social_media{
+  text-align: left;;
+  padding: 10px 360px;
 }
