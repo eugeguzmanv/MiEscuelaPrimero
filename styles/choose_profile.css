@@ -1,3 +1,26 @@
+/*Estilo de la parte superior de la página*/
+.menu{
+    background-color: #009933;
+    padding: 10px 0;
+    height: 100px;
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.menu li, a{
+    display:inline-block;
+    width: 150px;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 20px;
+    text-align: center;
+    text-decoration: none;
+}
+
 body, html {
     margin: 0;
     padding: 0;
@@ -6,23 +29,23 @@ body, html {
     background-color: #f0f0f0
 }
 
-.profile-header{
+.profile-header p{
     display: flex;
     margin-top: 10px;
     margin-bottom: 10px;
-    margin-left: 330px;
     justify-content: center;
-    align-items: center;
     background-color: #009933;
     color: white;
-    width: 50%;
     height: 100px;
     border-radius: 20px;
     font-family: 'Montserrat', sans-serif;
     font-weight: 600;
-    font-size: 20px;
-    text-align: center;
+    font-size: 65px;
+    width: 50%;
+    margin: 20px auto; /*Esto lo centra horizontal y verticalmente*/
+    text-align: center;    
 }
+
 table{
     width: 100%;
     justify-content: center;
