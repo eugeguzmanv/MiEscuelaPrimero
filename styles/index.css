@@ -10,41 +10,62 @@
     text-decoration: none;
 }
 
-h1{
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 600;
-    font-size: 24px;
-    color: white;
-    margin-left: 10px;
-    margin-right: 50px;
-}
-
 /*Estilo de la parte superior de la página*/
 .menu {
     background-color: #009933;
-    padding: 10px 0;
+    padding: 10px;
     height: 100px;
     display: flex;
     justify-content: left;
     align-items: center;
-    margin: 0;
-    padding: 20px 0;
+}
+
+h1{
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 24px;
+  color: white;
+  margin-left: 10px;
+  margin-right: 50px;
 }
 
 .footer {
     background-color: #009933;
     color: white;
     text-align: left;
-    padding: 10px 0;
+    padding: 0px 10px;
     font-size: 14px;
-    height: 330px;
+    height: 400px;
     font-family: 'Montserrat', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
-
-.footer h3, p{
-    margin-left: 10px;
+.footer-content{
+  display: flex;
+}
+.footer h3{
+    margin-bottom: 10px;
+    font-size: 30px;
+    padding: 10px;
   }
 
+.footer-content .logotipo{
+  margin-right: 20px;
+  width: 200px;
+
+}
+.footer table td, .footer-content p{
+    padding: 15px;
+    text-align: left;
+    font-family: 'Montserrat', sans-serif;
+    flex-grow: 1;
+}
+.footer a{
+  text-decoration: none;
+  color: white;
+  font-family: 'Montserrat', sans-serif;
+}
 .container{
     position:relative;
     background-image: url('main_image.jpg');
@@ -59,7 +80,6 @@ h1{
 
 .content {
   padding: 10px;
-  margin: 10px;
   font-family: 'Montserrat', sans-serif;
   font-weight: 600;
   font-size: 20px;
@@ -79,12 +99,21 @@ h2{
     text-align: left;
 }
 
+.location {
+  display: flex;
+  align-items: center;
+}
+
+.location img {
+  margin-right: 10px; /* Ajusta el espacio entre el icono y el texto */
+}
+
 .images{
   display: flex;
 }
 
 .photo_MP {
-  width: 100%;
+  padding: 20px;
 }
 
 .subheading_SN{
@@ -95,13 +124,12 @@ h2{
     background-color:white;
     color: black;
     padding: 10px;
-    margin: 10px;
-    background-color: #f0f0f0;
+    background-color: #d1f5dc;
     font-family: 'Montserrat', sans-serif;
     font-weight: 600;
     font-size: 20px;
     text-align: justify;
-    height: 800px;
+    height: 900px;
 }
 
 #sobre_ellos{
@@ -111,14 +139,19 @@ h2{
 #logo{
   border-radius: 100%;
 }
+.my_school{
+  width: 100px;
+  height: 100px;
+  border-radius: 100%;
+}
 .icons{
   width: 20px;
   height: 20px;
   margin-left: 10px;
   border-radius: 100%;
-  margin-right: 10px;
+  margin-right: 5px;
 }
-.social_media{
-  text-align: left;;
-  padding: 10px 360px;
+.footer-content .social_media{
+  text-align: left;
+  padding: 10px 210px;
 }

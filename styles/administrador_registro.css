@@ -1,0 +1,105 @@
+body {
+    font-family: 'Montserrat', sans-serif; /* Font family */
+    background-color: rgba(0, 153, 51, 0.3);
+    margin: 0;
+    padding: 0;
+    position: relative;
+}
+.register-content img{
+    width: 160px; /* Adjust the size of the image */
+    height: 160px; /* Adjust the size of the image */
+    margin-bottom: 20px; /* Space between image and form */
+    display: block; /* Center the image */
+    margin-left: auto; /* Center the image */
+    margin-right: auto; /* Center the image */
+}
+.register-content {
+    display: flex;
+    justify-content: space-between; /* Espacio entre el formulario y la imagen */
+    align-items: stretch; /* Alinea los elementos al inicio verticalmente */
+    max-width: 1000px; /* Ajusta el ancho máximo del contenedor */
+    margin: 0 auto; /* Centra el contenedor */
+    padding: 20px;
+    border: 1px solid #ccc;
+    background-color: #ffffff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+    height: auto;
+}
+
+.form-container {
+    display: flex;
+    flex: 1; /* Permite que el contenedor ocupe el espacio disponible */
+}
+
+.form-fields {
+    flex: 1; /* Permite que los campos del formulario ocupen el espacio disponible */
+    margin-right: 0; /* Espacio entre los campos del formulario y la imagen */
+}
+
+.form-image {
+    flex: 1; /* Permite que la imagen ocupe el espacio disponible */
+    display: flex;
+    justify-content: center; /* Centra la imagen horizontalmente */
+    align-items: center; /* Centra la imagen verticalmente */
+    margin: 0; /* Remove any margin */
+    padding: 0; /* Remove any padding */
+    height: 100%;
+}
+
+.form-image img {
+    width: 100%; /* Ajusta el tamaño máximo de la imagen */
+    height: 100%; /* Mantiene la proporción de la imagen */
+    object-fit: cover;
+    border-radius: 0px;
+    padding: 0;
+    margin-left: 10px;
+    margin-bottom: 1px;
+    
+}
+
+.register-content h2 {
+    background-color: #009933; /* Fondo verde */
+    color: #fff; /* Color del texto en blanco */
+    padding: 10px;
+    justify-content: center; /* Centrar el texto verticalmente */
+    align-items: center; /* Centrar el texto verticalmente */
+    border-radius: 10px; /* Opcional: bordes redondeados */
+    text-align: center; /* Opcional: centrar el texto */
+    margin-bottom: 20px; /* Espacio debajo del encabezado */
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    color: #009933; /* Text color */
+    font-weight: 600; /* Bold text */
+    font-size: 17px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    width: 90%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+button {
+    width: 50%;
+    padding: 10px;
+    background-color: #009933; /* Button background color */
+    color: #fff; /* Button text color */
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 17px;
+    margin-left: 120px;
+    margin-bottom: 10px;
+}
+
+button:hover {
+    background-color: #026322; /* Button hover color */
+}

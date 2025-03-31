@@ -1,26 +1,24 @@
 /*Estilo de la parte superior de la página*/
 .menu{
     background-color: #009933;
-    padding: 10px 0;
-    height: 100px;
+    padding: 10px;
+    height: 60px;
     display: flex;
     justify-content: left;
     align-items: center;
     margin: 0 auto;
     padding: 20px;
+    margin-bottom: 30px;
 }
 
-.menu li, a{
-    display:inline-block;
-    width: 150px;
-    color: white;
+h1{
     font-family: 'Montserrat', sans-serif;
     font-weight: 600;
-    font-size: 20px;
-    text-align: center;
-    text-decoration: none;
+    font-size: 18px;
+    color: white;
+    margin-left: 10px;
+    margin-right: 50px;
 }
-
 body, html {
     margin: 0;
     padding: 0;
@@ -29,18 +27,18 @@ body, html {
     background-color: #f0f0f0
 }
 
-.profile-header p{
+.profile-header{
     display: flex;
-    margin-top: 10px;
     margin-bottom: 10px;
     justify-content: center;
-    background-color: #009933;
+    align-items: center;
+    background-color: #009F98;
     color: white;
     height: 100px;
     border-radius: 20px;
     font-family: 'Montserrat', sans-serif;
     font-weight: 600;
-    font-size: 65px;
+    font-size: 40px;
     width: 50%;
     margin: 20px auto; /*Esto lo centra horizontal y verticalmente*/
     text-align: center;    
@@ -74,7 +72,7 @@ table{
     transition: transform 0.3s, box-shadow 0.3s;
 }
 
-.profile-option a{
+.profile-option .profile{
     text-decoration: none;
     color: #009933;
     display: inline-block;
@@ -86,13 +84,19 @@ table{
 }
 
 .profile-option h3 {
-    margin: 0;
     font-family: 'Montserrat', sans-serif;
     font-weight: 600;
     color: #009933;
+    text-align: center;
 }
 img{
     width: 100px;
     height: 100px;
     margin: 10px;
+}
+
+#logo{
+    width: 70px;
+    height: 70px;
+    border-radius: 100%;
 }
