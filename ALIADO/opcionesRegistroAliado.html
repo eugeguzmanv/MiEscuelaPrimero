@@ -3,6 +3,7 @@
 <head>
     <title>Opciones de Registro Aliado</title>
     <link rel="stylesheet" type="text/css" href="../styles/opciones_registro_escuela.css">
+    <script src="../scripts/navigation.js"></script> <!--Script solo para nav sin backend-->
 </head>
 <body>
     <!-- Parte superior de la página -->
@@ -15,8 +16,10 @@
     <div class="form-container">
         <h2>Selecciona una opción</h2>
         <div class="button-container">
-            <button onclick="location.href='registroEscuela.html'">Registarme como Persona Física</button>
-            <button onclick="location.href='anadirRepresentante.html'">Registrarme como Persona Moral</button>
+            <!-- onclick solo para nav sin backend -->
+            <button onclick="seleccionarTipoAliado('fisica')">Registrarme como Persona Física</button>
+            <!-- onclick solo para nav sin backend -->
+            <button onclick="seleccionarTipoAliado('moral')">Registrarme como Persona Moral</button>
         </div>
     </div>
 </body>

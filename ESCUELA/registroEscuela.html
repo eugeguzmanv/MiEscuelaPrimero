@@ -16,16 +16,16 @@
         <h2>Registro de Escuela</h2>
         <form>
             <label for="nombre">Nombre de la escuela:</label>
-            <input type="text" id="nombre" name="nombre" required>
+            <input type="text" id="nombre" name="nombre">
 
             <label for="clave">Clave (CCT):</label>
-            <input type="text" id="clave" name="clave" required>
+            <input type="text" id="clave" name="clave">
 
             <label for="nivel">Nivel educativo:</label>
-            <input type="text" id="nivel" name="nivel" required>
+            <input type="text" id="nivel" name="nivel">
 
             <label for="modalidad">Modalidad:</label>
-            <select id="modalidad" name="modalidad" required>
+            <select id="modalidad" name="modalidad">
                 <option value="general">General</option>
                 <option value="comunitaria">Comunitaria</option>
                 <option value="indigena">Indígena</option>
@@ -36,29 +36,31 @@
             <input type="text" id="control" name="control" value="Público" readonly>
 
             <label for="sostenimiento">Sostenimiento:</label>
-            <select id="sostenimiento" name="sostenimiento" required>
+            <select id="sostenimiento" name="sostenimiento">
                 <option value="estatal">Estatal</option>
                 <option value="federal">Federal</option>
             </select>
 
             <label for="zona">Zona escolar:</label>
-            <input type="text" id="zona" name="zona" required>
+            <input type="text" id="zona" name="zona">
 
             <label for="sector">Sector escolar:</label>
-            <input type="text" id="sector" name="sector" required>
+            <input type="text" id="sector" name="sector">
 
             <label for="direccion">Dirección:</label>
-            <input type="text" id="calle" name="calle" placeholder="Calle y número" required>
-            <input type="text" id="colonia" name="colonia" placeholder="Colonia" required>
-            <input type="text" id="municipio" name="municipio" placeholder="Municipio" required>
+            <input type="text" id="calle" name="calle" placeholder="Calle y número">
+            <input type="text" id="colonia" name="colonia" placeholder="Colonia">
+            <input type="text" id="municipio" name="municipio" placeholder="Municipio">
 
             <!-- Apartado de descripción -->
             <label for="descripcion">Descripción:</label>
-            <textarea id="descripcion" name="descripcion" rows="4" placeholder="Escribe una breve descripción de la escuela..." required></textarea>
+            <textarea id="descripcion" name="descripcion" rows="4" placeholder="Escribe una breve descripción de la escuela..."></textarea>
             <h2 class="titulo_representante">Información del representante</h2>
             <label for="rol_representante">Rol del representante:</label>
-            <textarea id="descripcion" name="descripcion" rows="4" placeholder="Indica el rol del representante dentro de la Escuela" required></textarea>
-            <button type="submit">Registrar</button>
+            <textarea id="descripcion" name="descripcion" rows="4" placeholder="Indica el rol del representante dentro de la Escuela"></textarea>
+            <!-- onlcick solo para nav sin back -->
+            <button type="button" onclick="window.location.href='mainEscuela.html'">Registrar</button>
+
             
         </form>
     </div>

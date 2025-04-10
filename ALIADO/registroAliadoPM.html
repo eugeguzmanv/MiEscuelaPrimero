@@ -3,6 +3,7 @@
 <head>
     <title>Registro de Persona Moral</title>
     <link rel="stylesheet" type="text/css" href="../styles/registro_aliado.css">
+    <script src="../scripts/navigation.js"></script> <!-- script SOLO PARA NAV SIN BACK -->
 </head>
 <body>
     <!-- Parte superior de la página -->
@@ -68,8 +69,10 @@
             <!-- RFC -->
             <label for="rfc">RFC:</label>
             <input type="text" id="rfc" name="rfc">
+            <!-- onlcick solo para nav sin back -->
+            <!-- BOTON SOLO PARA NAV SIN BACK -->
+            <button type="button" onclick="seleccionarTipoAliado('fisica'); finalizarRegistroAliado()">Registrar</button>
 
-            <button type="submit">Registrar</button>
         </form>
     </div>
 </body>

@@ -78,6 +78,10 @@ textarea {
     font-family: 'Montserrat', sans-serif; /* Match the font family */
     resize: none; /* Disable resizing for consistency */
 }
+input:focus, textarea:focus {
+    outline: 2px solid orange; /* Contorno naranja */
+    border-color: orange; /* Cambiar el color del borde */
+}
 .titulo_representante {
     text-align: center;
     color: #009933;

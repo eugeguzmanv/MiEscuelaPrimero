@@ -58,6 +58,10 @@ input, textarea {
 textarea {
     resize: none;
 }
+input:focus, textarea:focus {
+    outline: 2px solid orange; /* Contorno naranja */
+    border-color: orange; /* Cambiar el color del borde */
+}
 
 button {
     width: 100%;

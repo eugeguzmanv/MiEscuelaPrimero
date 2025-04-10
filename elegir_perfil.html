@@ -3,41 +3,53 @@
     <head>
         <title>Perfil</title>
         <link rel="stylesheet" type="text/css" href="./styles/choose_profile.css">
-        <script src="register_profile.js"></script>
     </head>
     <body>
         <!--Parte superior de la página-->
         <div class="menu"> 
-            <img id="logo", alt = "Logo" src="./images/logo.png">
-                <h1>Mexicanos Primero Jalisco</h1> 
+            <img id="logo" alt="Logo" src="./images/logo.png">
+            <h1>Mexicanos Primero Jalisco</h1> 
         </div>
 
-        <div class="container">
-        </div>
+        <div class="container"></div>
         <div class="profile-header">
-        <p>Elige quién eres</p>
-    </div>
+            <p>Elige quién eres</p>
+        </div>
         <!--Tabla de selección de tipo de usuario-->
         <table>
             <td>
-                <div class = "profile_selection">
-                    <div class="profile-option"><a class = "profile" href="registroUsuario.html">
-                        <img src="./images/administrator_profile.png" alt="Administrador">
-                        <h3>Administrador</h3>
-                    </a></div>
+                <div class="profile_selection">
+                    <div class="profile-option">
+                        <a class="profile" href="#" onclick="seleccionarPerfil('registroAdmin')"><!--onclcik unicamente para nav. sin backend-->
+                            <img src="./images/administrator_profile.png" alt="Administrador">
+                            <h3>Administrador</h3>
+                        </a>
+                    </div>
+                </div>
             </td>
             <td>
-                <div class="profile-option"><a class = "profile" href="registroUsuario.html">
-                    <img src="./images/school_profile.png" alt="Escuela">
-                    <h3>Escuela</h3>
-                </a></div>
+                <div class="profile_selection">
+                    <div class="profile-option">
+                        <a class="profile" href="#" onclick="seleccionarPerfil('ESCUELA/opcionesRegistroEscuela')"><!--onclcik unicamente para nav. sin backend-->
+                            <img src="./images/school_profile.png" alt="Escuela">
+                            <h3>Escuela</h3>
+                        </a>
+                    </div>
+                </div>
             </td>
             <td>
-                <div class="profile-option"><a class = "profile" href="registroUsuario.html">
-                    <img src="./images/ally_profile.png" alt="Aliado"> <br>
-                    <h3>Aliado</h3>
-                </a></div>
+                <div class="profile_selection">
+                    <div class="profile-option">
+                        <a class="profile" href="#" onclick="seleccionarPerfil('ALIADO/opcionesRegistroAliado')"><!--onclcik unicamente para nav. sin backend-->
+                            <img src="./images/ally_profile.png" alt="Aliado">
+                            <h3>Aliado</h3>
+                        </a>
+                    </div>
+                </div>
             </td>
         </table>
+        <!--SCRITP PARA NAVEGACION SIN BACKEND-->
+        <script src="./scripts/navigation.js"></script>
     </body>
+</html>
 </html>

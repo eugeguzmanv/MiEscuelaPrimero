@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Registro de Aliado</title>
+    <title>Registro Aliado</title>
     <link rel="stylesheet" type="text/css" href="../styles/registro_aliado.css">
+    <script src="../scripts/navigation.js"></script> <!-- script SOLO PARA NAV SIN BACK -->
 </head>
 <body>
     <!-- Parte superior de la página -->
@@ -13,7 +14,8 @@
 
     <!-- Contenedor principal -->
     <div class="form-container">
-        <h2>Registro de Aliado</h2>
+        <h2>Registro Aliado</h2>
+        <!-- Formulario de registro -->
         <form>
             <!-- Institución -->
             <label for="institucion">Institución:</label>
@@ -44,7 +46,9 @@
             <label for="curp">CURP:</label>
             <input type="text" id="curp" name="curp" required>
 
-            <button type="submit">Registrar</button>
+            <!-- onlcick solo para nav sin back -->
+            <button type="button" onclick="finalizarRegistroAliado()">Registrar</button>
+
         </form>
     </div>
 </body>
