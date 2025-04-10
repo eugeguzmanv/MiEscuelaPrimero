@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Registro de Escuela</title>
+    <link rel="stylesheet" type="text/css" href="../styles/registro_escuela.css">
+</head>
+<body>
+    <!-- Parte superior de la página -->
+    <div class="menu">
+        <img id="logo" alt="Logo" src="../images/logo.png" width="70px">
+        <h1>Mexicanos Primero Jalisco</h1>
+    </div>
+
+    <!-- Contenedor principal -->
+    <div class="form-container">
+        <h2>Registro de Escuela</h2>
+        <form>
+            <label for="nombre">Nombre de la escuela:</label>
+            <input type="text" id="nombre" name="nombre" required>
+
+            <label for="clave">Clave (CCT):</label>
+            <input type="text" id="clave" name="clave" required>
+
+            <label for="nivel">Nivel educativo:</label>
+            <input type="text" id="nivel" name="nivel" required>
+
+            <label for="modalidad">Modalidad:</label>
+            <select id="modalidad" name="modalidad" required>
+                <option value="general">General</option>
+                <option value="comunitaria">Comunitaria</option>
+                <option value="indigena">Indígena</option>
+                <option value="multigrado">General multigrado</option>
+            </select>
+
+            <label for="control">Control administrativo:</label>
+            <input type="text" id="control" name="control" value="Público" readonly>
+
+            <label for="sostenimiento">Sostenimiento:</label>
+            <select id="sostenimiento" name="sostenimiento" required>
+                <option value="estatal">Estatal</option>
+                <option value="federal">Federal</option>
+            </select>
+
+            <label for="zona">Zona escolar:</label>
+            <input type="text" id="zona" name="zona" required>
+
+            <label for="sector">Sector escolar:</label>
+            <input type="text" id="sector" name="sector" required>
+
+            <label for="direccion">Dirección:</label>
+            <input type="text" id="calle" name="calle" placeholder="Calle y número" required>
+            <input type="text" id="colonia" name="colonia" placeholder="Colonia" required>
+            <input type="text" id="municipio" name="municipio" placeholder="Municipio" required>
+
+            <!-- Apartado de descripción -->
+            <label for="descripcion">Descripción:</label>
+            <textarea id="descripcion" name="descripcion" rows="4" placeholder="Escribe una breve descripción de la escuela..." required></textarea>
+            <h2 class="titulo_representante">Información del representante</h2>
+            <label for="rol_representante">Rol del representante:</label>
+            <textarea id="descripcion" name="descripcion" rows="4" placeholder="Indica el rol del representante dentro de la Escuela" required></textarea>
+            <button type="submit">Registrar</button>
+            
+        </form>
+    </div>
+</body>
+</html>

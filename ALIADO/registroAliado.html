@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Registro de Aliado</title>
+    <link rel="stylesheet" type="text/css" href="../styles/registro_aliado.css">
+</head>
+<body>
+    <!-- Parte superior de la página -->
+    <div class="menu">
+        <img id="logo" alt="Logo" src="../images/logo.png" width="70px">
+        <h1>Mexicanos Primero Jalisco</h1>
+    </div>
+
+    <!-- Contenedor principal -->
+    <div class="form-container">
+        <h2>Registro de Aliado</h2>
+        <form>
+            <!-- Institución -->
+            <label for="institucion">Institución:</label>
+            <input type="text" id="institucion" name="institucion" required>
+
+            <!-- Sector -->
+            <label for="sector">Sector:</label>
+            <input type="text" id="sector" name="sector" required>
+
+            <!-- Dirección -->
+            <label for="calle">Calle:</label>
+            <input type="text" id="calle" name="calle" required>
+
+            <label for="numero">Número:</label>
+            <input type="text" id="numero" name="numero" required>
+
+            <label for="colonia">Colonia:</label>
+            <input type="text" id="colonia" name="colonia" required>
+
+            <label for="municipio">Municipio:</label>
+            <input type="text" id="municipio" name="municipio" required>
+
+            <!-- Descripción -->
+            <label for="descripcion">Descripción:</label>
+            <textarea id="descripcion" name="descripcion" rows="4" required></textarea>
+
+            <!-- CURP -->
+            <label for="curp">CURP:</label>
+            <input type="text" id="curp" name="curp" required>
+
+            <button type="submit">Registrar</button>
+        </form>
+    </div>
+</body>
+</html>
