@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Registro Admin</title>
+    <link rel="stylesheet" type="text/css" href="../styles/registro_aliado.css">
+    <script src="../scripts/navigation.js"></script> <!-- script SOLO PARA NAV SIN BACK -->
+</head>
+<body>
+    <!-- Parte superior de la página -->
+    <div class="menu">
+        <img id="logo" alt="Logo" src="../images/logo.png" width="70px">
+        <h1>Mexicanos Primero Jalisco</h1>
+    </div>
+
+    <!-- Contenedor principal -->
+    <div class="form-container">
+        <h2>Registro de Administrador</h2>
+        <!-- Formulario de registro -->
+        <form>
+            <!-- Institución -->
+            <label for="Nombre">Nombre:</label>
+            <input type="text" id="nombre" name="nombre">
+
+            <!-- Sector -->
+            <label for="correo">Correo electrónico:</label>
+            <input type="text" id="correo" name="correo" placeholder="ejemplo@mpj.org.mx">
+
+            <!-- Dirección -->
+            <label for="contrasena">Contraseña:</label>
+            <input type="text" id="contrasena" name="contrasena">
+
+            <!-- onlcick solo para nav sin back -->
+            <button type="button" onclick="window.location.href='mainAdmin.html'">Registrar</button>
+
+        </form>
+    </div>
+</body>
+</html>
