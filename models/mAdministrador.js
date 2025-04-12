@@ -17,6 +17,7 @@ const AdminModel = {
     
     //Probablemente no usemos este pero es para darles un ejemplo de como se haría
     getAdminById: (id_admin) => db('mpj_db').where({ id_admin }).first(), //Regresa UN solo objeto gracias al .first()
+    getAdminByMail: (correo_admin) => db('mpj_db').where({ correo_admin }).first(), //Regresa UN solo objeto gracias al .first()
     getAllAdmins: () => db('mpj_db').select('*'), //Regresa todos los objetos de la tabla en un array gracias al .select('*')
     
 };
