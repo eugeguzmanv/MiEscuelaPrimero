@@ -49,6 +49,39 @@ app.post('/api/registroAdmin', async (req, res) => {
     }
 });
 
+//Endpoint de inicio de sesión de administrador
+app.post('/api/loginAdmin', async (req, res) => {
+    try{
+        const {correo_admin, contrasena_admin} = req.body;
+
+        //Validar que no sean campos vacíos
+        if(!correo_admin || !contrasena_admin) {
+            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+        }
+
+        //Validar que el correo tenga el formato correcto (debe terminar en @mpj.com)
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@mpj\.com$/; //Expresión regular para validar el correo
+
+        //Validar que la información exista en la base de datos
+        const existingAdmin = await AdminModel.getAdminByMail(correo_admin);
+        if(!existingAdmin){
+            return res.status(400).json({ error: 'El correo no está registrado'});
+        }
+
+        //Validar que la contraseña sea correcta
+        const existingAdminPass = await AdminModel.getAdminPass(contrasena_admin);
+        if(!existingAdminPass){
+            return res.status(400).json({ error: 'La contraseña es incorrecta'});
+        }
+
+        //Si todo es correcto, iniciar sesión
+        return res.status(200).json({ message: 'Inicio de sesión exitoso'});
+    }catch(error){
+        console.error('Error al iniciar sesión:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 //============ENPOINTS DE REPRESENTANTE============//
 
 //============ENPOINTS DE ESCUELA============//
