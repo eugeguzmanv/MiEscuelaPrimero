@@ -82,6 +82,69 @@ app.post('/api/loginAdmin', async (req, res) => {
     }
 });
 
+//Endpoint para actualizar datos del administrador
+app.put('/api/actualizarAdmin', async (req, res) => {
+    try{
+        const {correo_admin, contrasena_admin, nombre_admin} = req.body;
+
+        //Validar que no sean campos vacíos
+        if(!correo_admin || !contrasena_admin || !nombre_admin){
+            return res.status(400).json({error: 'Todos los campos son obligatorios'});
+        }
+
+        //Validar que el correo tenga el formato correcto (debe terminar en @mpj.com)
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@mpj\.com$/; //Expresión regular para validar el correo
+
+        //Validar que no exista ese correo en la base de datos
+        const existingAdmin = await AdminModel.getAdminByMail(correo_admin);
+        if(existingAdmin){
+            return res.status(400).json({ error: 'El correo ya está registrado'});
+        }
+
+        //Actualizar el correo y la contraseña del administrador en la base de datos
+        await AdminModel.updateAdminMail(correo_admin);
+        await AdminModel.updateAdminPass(contrasena_admin);
+        await AdminModel.updateAdminName(nombre_admin);
+
+        return res.status(200).json({ message: 'Administrador actualizado exitosamente' });
+    }catch(error){
+        console.error('Error al actualizar administrador:', error);
+        return res.status(500).json({error: 'Error interno del servidor'});
+    }
+});
+
+//Endpoint para enviar un email para restablecer la contraseña
+app.post('/api/restablecerAdminContraseña', async (req, res) => {
+    try{
+        const {correo_admin} = req.body;
+
+        //Validar que no sea un campo vacío
+        if(!correo_admin){
+            return res.status(400).json({error: 'El campo correo es obligatorio'});
+        }
+
+        //Validar que el correo exista en la base de datos
+        const existingAdmin = await AdminModel.getAdminByMail(correo_admin);
+        if(!existingAdmin){
+            return res.status(400).json({ error: 'El correo no está registrado'});
+        }
+
+        //Enviar un email para restablecer la contraseña
+        return res.status(200).json({ message: 'Se ha enviado un correo para restablecer la contraseña'});
+    }catch(error){
+        console.error('Error al enviar correo para restablecer contraseña:', error);
+        return res.status(500).json({error: 'Error interno del servidor'});
+    }
+});
+
+//Endpoint para Validar/No Validar datos del catálogo de escuelas
+app.patch('/api/validarDatosEscuela', async (req, res) => {
+    /*try{
+        const {}
+    }*/
+});
+
+
 //============ENPOINTS DE REPRESENTANTE============//
 
 //============ENPOINTS DE ESCUELA============//
