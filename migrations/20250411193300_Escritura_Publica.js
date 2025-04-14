@@ -5,6 +5,7 @@ exports.up = function(knex) {
         table.string('fecha_escritura').notNullable();
         table.string('notario').notNullable();
         table.string('ciudad').notNullable();
+        table.increments('idAliado').notNullable(); //idAliado del aliado que recibe la escritura publica
         table.foreign('idPersonaMoral').references('idPersonaMoral').inTable('Persona_Moral').notnullable(); //Foreing key de la tabla Aliado
     });
 };

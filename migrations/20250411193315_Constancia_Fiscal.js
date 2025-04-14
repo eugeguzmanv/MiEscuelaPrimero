@@ -5,6 +5,7 @@ exports.up = function(knex) {
     table.string('regimen').notnullable();
     table.string('razon_social').notnullable();
     table.string('RFC').notnullable();
+    table.integer('idPersonaMoral').notnullable(); //idPersonaMoral de la persona moral que recibe el apoyo
     table.foreign('idPersonaMoral').references('idPersonaMoral').inTable('Persona_Moral').notnullable(); 
     });
 };
