@@ -1,8 +1,8 @@
 exports.up = function(knex) {
-    return knex.schema.createTable('Apoyo_tiene_evidencia', (table) => {
-        table.increments('idApoyoEvidencia').primary();
+    return knex.schema.createTable('Evidencia', (table) => {
+        table.increments('idEvidencia').primary();
         table.foreign('idApoyo').references('idApoyo').inTable('Apoyo'); //Foreing key de la tabla Apoyo
-        //table.increments('idEvidencia'); //Revisar el tipo de dato que entra (es autoincremental)
+        table.foreign('idNecesidad').references('idNecesidad').inTable('Necesidad'); //Foreing key de la tabla Necesidad
         table.string('nombre').notNullable();
         table.string('ruta').notNullable();
     });

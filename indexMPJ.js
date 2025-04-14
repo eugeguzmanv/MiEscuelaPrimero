@@ -184,3 +184,8 @@ app.patch('/api/validarDatosEscuela', async (req, res) => {
 //============ENPOINTS DE APOYO_TIENE_EVIDENCIA============//
 
 //============ENPOINTS DE NECESIDAD_TIENE_EVIDENCIA============//
+
+//Puerto de escucha
+app.listen(port, () =>{
+    console.log(`Servidor en http://localhost:${port}`);
+})
