@@ -1,7 +1,7 @@
 exports.up = function(knex) {
     return knex.schema.createTable('Necesidad', (table) => {
         table.increments('idNecesidad').primary();
-        table.string('ponderacion').notNullable();
+        table.integer('ponderacion').notNullable(); //int, puede ser string (revisar tipo de dato a ingresar)
         table.string('status').notNullable();
         table.string('descripcion').notNullable();
         table.string('categoria').notNullable();

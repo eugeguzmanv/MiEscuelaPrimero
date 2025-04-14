@@ -5,7 +5,7 @@ exports.up = function(knex) {
         table.string('fecha_escritura').notNullable();
         table.string('notario').notNullable();
         table.string('ciudad').notNullable();
-        table.foreign('idAliado').references('idAliado').inTable('Aliado'); //Foreing key de la tabla Aliado
+        table.foreign('idPersonaMoral').references('idPersonaMoral').inTable('Persona_Moral').notnullable(); //Foreing key de la tabla Aliado
     });
 };
 

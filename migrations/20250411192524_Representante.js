@@ -8,8 +8,8 @@ exports.up = function(knex) {
         table.string('CCT').foreignKey('CCT').references('CCT').inTable('Escuela'); //Foreing key de la tabla Escuela, (Revisar tipo de dato a ingresar)
         table.string('rol').notNullable();
         table.integer('anios_experiencia').notNullable();
-        table.string('proximo_a_jubilarse').notNullable(); //Revisar tipo de dato a ingresar
-        table.string('cambio_zona').notNullable(); //Revisar tipo de dato a ingresar
+        table.bool('proximo_a_jubilarse').notNullable(); //Revisar tipo de dato a ingresar
+        table.bool('cambio_zona').notNullable(); //Revisar tipo de dato a ingresar
     });
 };
 

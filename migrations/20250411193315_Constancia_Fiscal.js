@@ -1,11 +1,11 @@
 exports.up = function(knex) {
   return knex.schema.createTable('Constancia_Fiscal', (table) => {
     table.increments('idConstanciaFiscal').primary();
-    table.string('numero_escritura').notnullable();
-    table.string('fecha_escritura').notnullable();
-    table.string('notario').notnullable();
-    table.string('ciudad').notnullable();
-    table.foreign('idAliado').references('idAliado').inTable('Aliado'); //Foreing key de la tabla Aliado
+    table.string('domicilio').notnullable();
+    table.string('regimen').notnullable();
+    table.string('razon_social').notnullable();
+    table.string('RFC').notnullable();
+    table.foreign('idPersonaMoral').references('idPersonaMoral').inTable('Persona_Moral').notnullable(); 
     });
 };
 

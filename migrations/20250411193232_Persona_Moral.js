@@ -4,7 +4,7 @@ exports.up = function(knex) {
         table.string('giro').notNullable(); //Revisar el tipo de dato que se va a ingresar
         table.string('proposito').notNullable();
         table.string('nombre_organizacion').notNullable();
-        table.string('pagina_web').notNullable();
+        table.string('pagina_web');
         table.foreingn('idAliado').references('idAliado').inTable('Aliado'); //Foreing key de la tabla Aliado, (Revisar tipo de dato a ingresar)
     });
 };
