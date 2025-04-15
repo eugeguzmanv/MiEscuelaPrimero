@@ -585,6 +585,7 @@ app.get('/api/escuela/sector_escolar/:sector_escolar', async (req, res) => {
     }
 });
 
+
 //============ENPOINTS DE ALIADO============//
 //Endpoint de registro de aliado
 app.post('/api/registroAliado', async (req, res) => {
@@ -857,3 +858,4 @@ app.post('/api/restablecerAliadoContrasena', async (req, res) => {
 app.listen(port, () =>{
     console.log(`Servidor en http://localhost:${port}`);
 })
+//============NECESIDAD============//
