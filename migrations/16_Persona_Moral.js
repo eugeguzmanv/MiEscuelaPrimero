@@ -6,7 +6,7 @@ exports.up = function(knex) {
         table.string('nombre_organizacion').notNullable();
         table.string('pagina_web');
         table.integer('idAliado').notNullable(); //idAliado del aliado que brinda el apoyo
-        table.foreingn('idAliado').references('idAliado').inTable('Aliado'); //Foreing key de la tabla Aliado, (Revisar tipo de dato a ingresar)
+        table.foreign('idAliado').references('idAliado').inTable('Aliado'); //Foreing key de la tabla Aliado, (Revisar tipo de dato a ingresar)
     });
 };
 

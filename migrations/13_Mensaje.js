@@ -4,7 +4,7 @@ exports.up = function(knex) {
         table.string('contenido').notNullable();
         table.string('fecha_hora').notNullable();
         table.integer('idChat').notNullable(); //idChat del chat al que pertenece el mensaje
-        table.foreign('idChat').references('idChat').inTable('Chat').notNullable(); //Foreing key de la tabla Chat
+        table.foreign('idChat').references('idChat').inTable('Chat'); //Foreing key de la tabla Chat
         table.string('emisor').notNullable(); // Nombre del emisor, registrado al enviar el mensaje
         
     });

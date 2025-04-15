@@ -114,7 +114,7 @@ app.put('/api/actualizarAdmin', async (req, res) => {
 });
 
 //Endpoint para enviar un email para restablecer la contraseña
-app.post('/api/restablecerAdminContraseña', async (req, res) => {
+app.post('/api/restablecerAdminContrasena', async (req, res) => {
     try{
         const {correo_admin} = req.body;
 
