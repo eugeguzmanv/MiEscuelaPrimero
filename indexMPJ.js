@@ -440,6 +440,7 @@ app.get('/api/escuela/sector_escolar/:sector_escolar', async (req, res) => { //C
 });
 
 
+
 //============ENPOINTS DE ALIADO============//
 
 //============ENPOINTS DE NECESIDAD============//
