@@ -149,6 +149,7 @@ app.patch('/api/validarDatosEscuela', async (req, res) => {
 
 //============ENPOINTS DE ESCUELA============//
 
+
 //============ENPOINTS DE ALIADO============//
 
 //============ENPOINTS DE NECESIDAD============//
@@ -181,6 +182,4 @@ app.patch('/api/validarDatosEscuela', async (req, res) => {
 
 //============ENPOINTS DE CONSTANCIA_FISCAL============//
 
-//============ENPOINTS DE APOYO_TIENE_EVIDENCIA============//
-
-//============ENPOINTS DE NECESIDAD_TIENE_EVIDENCIA============//
+//============NECESIDAD============//
