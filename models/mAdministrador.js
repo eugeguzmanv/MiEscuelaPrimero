@@ -4,22 +4,23 @@ const db = require('../db.js');
 //Funciones para AdminModel
 const AdminModel = {
     //Apartado de registro de Admin
-    //Este apartado es para crear un nuevo administrador, se le asigna un id_admin automaticamente
-    createAdminName: (nombre_admin) => db('mpj_db').insert({ nombre_admin }),
-    //-----------Recuerden que el mail debe terminar en @mpj.com-----------
-    createAdminMail: (correo_admin) => db('mpj_db').insert({ correo_admin }),
-    createAdminPass: (contrasena_admin) => db('mpj_db').insert({ contrasena_admin }),
-    
+    //Este apartado es para crear un nuevo administrador, se le asigna un idAdmin automaticamente
+    createAdmin: (adminData) => db('Administrador').insert({
+        nombre: adminData.nombre,
+        correo_electronico: adminData.correo_electronico,
+        contrasena: adminData.contrasena
+    }), 
+
     //Apartado de actualización de datos
-    updateAdminName: (nombre_admin) => db('mpj_db').where({ nombre_admin }).update({ nombre_admin }),
-    updateAdminMail: (correo_admin) => db('mpj_db').where({ correo_admin }).update({ correo_admin }),
-    updateAdminPass: (contrasena_admin) => db('mpj_db').where({ contrasena_admin }).update({ contrasena_admin }), 
+    updateAdminName: (idAdmin, nuevoNombre) => db('Administrador').where({ idAdmin }).update({ nombre: nuevoNombre }),
+    updateAdminMail: (idAdmin, nuevoCorreo) => db('Administrador').where({ idAdmin }).update({ correo_electronico: nuevoCorreo }),
+    updateAdminPass: (idAdmin, nuevaContrasena) => db('Administrador').where({ idAdmin }).update({ contrasena: nuevaContrasena }), 
     
-    //Probablemente no usemos este pero es para darles un ejemplo de como se haría
-    getAdminById: (id_admin) => db('mpj_db').where({ id_admin }).first(), //Regresa UN solo objeto gracias al .first()
-    getAdminByMail: (correo_admin) => db('mpj_db').where({ correo_admin }).first(), //Regresa UN solo objeto gracias al .first()
-    getAdminPass: (contrasena_admin) => db('mpj_db').where({ contrasena_admin }).first(), //Regresa UN solo objeto gracias al .first()
-    getAllAdmins: () => db('mpj_db').select('*'), //Regresa todos los objetos de la tabla en un array gracias al .select('*')
+    //Apartado para obetener datos del administrador/es
+    getAdminById: (idAdmin) => db('Administrador').where({ idAdmin }).first(), //Regresa UN solo objeto gracias al .first()
+    getAdminByMail: (correo_electronico) => db('Administrador').where({ correo_electronico }).first(), //Regresa UN solo objeto gracias al .first()
+    getAdminPass: (contrasena) => db('Administrador').where({ contrasena }).first(), //Regresa UN solo objeto gracias al .first()
+    getAllAdmins: () => db('Administrador').select('*'), //Regresa todos los objetos de la tabla en un array gracias al .select('*')
 };
 
 module.exports = AdminModel; //Exportamos el modelo para usarlo en otros archivos
