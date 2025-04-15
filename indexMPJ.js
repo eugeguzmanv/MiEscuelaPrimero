@@ -586,6 +586,7 @@ app.get('/api/escuela/sector_escolar/:sector_escolar', async (req, res) => {
 });
 
 
+
 //============ENPOINTS DE ALIADO============//
 //Endpoint de registro de aliado
 app.post('/api/registroAliado', async (req, res) => {
@@ -850,9 +851,7 @@ app.post('/api/restablecerAliadoContrasena', async (req, res) => {
 
 //============ENPOINTS DE CONSTANCIA_FISCAL============//
 
-//============ENPOINTS DE APOYO_TIENE_EVIDENCIA============//
-
-//============ENPOINTS DE NECESIDAD_TIENE_EVIDENCIA============//
+//============NECESIDAD============//
 
 //Puerto de escucha
 app.listen(port, () =>{
