@@ -7,7 +7,7 @@ exports.up = function(knex) {
         table.string('fecha_inicio').notNullable();
         table.string('fecha_fin').notNullable();
         table.integer('idCronograma').notNullable(); //idCronograma del cronograma al que pertenece la actividad
-        table.foreing('idCronograma').references('idCronograma').inTable('Cronograma'); //Foreing key de la tabla Cronograma
+        table.foreign('idCronograma').references('idCronograma').inTable('Cronograma'); //Foreing key de la tabla Cronograma
     });
 };
 
