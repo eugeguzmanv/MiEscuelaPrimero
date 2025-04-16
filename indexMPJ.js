@@ -585,6 +585,97 @@ app.get('/api/escuela/sector_escolar/:sector_escolar', async (req, res) => {
     }
 });
 
+//...........................ENDPOINT TODO EN UNO PARA MOSTRAR ESCUELAS CON QUERY STRING Y USANDO FILTROS.........................
+app.get('/api/escuelas/', async (req, res) => {
+    //Validar que al menos un filtro esté presente
+    const { nombre, municipio, nivel_educativo, sector_escolar, zona_escolar } = req.query;
+    
+    if (!nombre && !municipio && !nivel_educativo && !sector_escolar && !zona_escolar) {
+        return res.status(400).json({ error: "Invalid query: elija un filtro" });
+    }
+
+    try {
+        //Construir query dinámica
+        let query = `
+            SELECT 
+                e.CCT, 
+                e.nombre, 
+                e.calle, 
+                e.numero,
+                e.colonia,
+                e.municipio,
+                e.nivel_educativo,
+                e.numero_alumnos,
+                e.sostenimiento,
+                e.sector_escolar,
+                e.zona_escolar,
+                e.control_administrativo,
+                r.nombre AS representante_nombre,
+                r.correo AS representante_correo
+            FROM Escuela e
+            LEFT JOIN Representante r ON e.CCT = r.CCT
+            WHERE 1=1
+        `;
+        
+        const params = []; //Crear un array para los parámetros de la query
+        
+        // Añadir filtros dinámicos
+        if (nombre) {
+            query += ` AND e.nombre LIKE ?`;
+            params.push(`%${nombre}%`); //Búsqueda parcial o coincidencias parciales
+        }
+        if (municipio) {
+            query += ` AND e.municipio = ?`;
+            params.push(municipio);
+        }
+        if (nivel_educativo) {
+            query += ` AND e.nivel_educativo = ?`;
+            params.push(nivel_educativo);
+        }
+        if (sector_escolar) {
+            query += ` AND e.sector_escolar = ?`;
+            params.push(sector_escolar);
+        }
+        if (zona_escolar) {
+            query += ` AND e.zona_escolar = ?`;
+            params.push(zona_escolar);
+        }
+        
+
+        //Ejecutar consulta
+        const [escuelas] = await pool.query(query, params);
+
+        //Formatear respuesta (dar formato a los resultados)
+        if (escuelas.length === 0) {
+            return res.status(404).json({ error: "No se encontraron escuelas" });
+        }
+
+        //Transforma los resultados de la BD a un formato más estructurado
+        const formattedEscuelas = escuelas.map(escuela => ({
+            CCT: escuela.CCT,
+            nombre: escuela.nombre,
+            direccion: {
+                calle: escuela.calle,
+                numero: escuela.numero,
+                colonia: escuela.colonia,
+                municipio: escuela.municipio
+            },
+            nivel_educativo: escuela.nivel_educativo,
+            numero_alumnos: escuela.numero_alumnos,
+            representante: {
+                nombre: escuela.representante_nombre || null,
+                correo: escuela.representante_correo || null
+            }
+        }));
+
+        res.status(200).json({ escuelas: formattedEscuelas });
+
+    } catch (error) {
+        console.error('Error en /api/escuelas:', error);
+        res.status(500).json({ error: "Error interno del servidor" });
+    }
+});
+
 
 
 //============ENPOINTS DE ALIADO============//
@@ -824,6 +915,7 @@ app.post('/api/restablecerAliadoContrasena', async (req, res) => {
 //============ENPOINTS DE NECESIDAD============//
 
 //============ENPOINTS DE DIAGNOSTICO============//
+
 
 //============ENPOINTS DE ALIADO============//
 
