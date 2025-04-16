@@ -1,2 +1,39 @@
 //Model de Aliado, para tener las funciones que haran las consultas a la base de datos
 const db = require('../db.js');
+
+const AliadoModel = {
+    //Apartado de registro de Aliado
+    //Este apartado es para crear un nuevo aliado, se le asigna un idAliado automaticamente
+    createAliado: (aliadoData) => db('Aliado').insert({
+        correo_electronico: aliadoData.correo_electronico,
+        nombre: aliadoData.nombre,
+        contrasena: aliadoData.contrasena,
+        CURP: aliadoData.CURP,
+        institucion: aliadoData.institucion,
+        sector: aliadoData.sector,
+        calle: aliadoData.calle,
+        colonia: aliadoData.colonia,
+        municipio: aliadoData.municipio,
+        numero: aliadoData.numero,
+        descripcion: aliadoData.descripcion
+    }), 
+
+
+    //Apartado de actualización de datos
+    updateAliadoName: (idAliado, nuevoNombre) => db('Aliado').where({ idAliado }).update({ nombre: nuevoNombre }),
+    updateAliadoMail: (idAliado, nuevoCorreo) => db('Aliado').where({ idAliado }).update({ correo_electronico: nuevoCorreo }),
+    updateAliadoMunicipio: (idAliado, nuevoMunicipio) => db('Aliado').where({ idAliado }).update({ municipio: nuevoMunicipio }),
+    updateAliadoSector: (idAliado, nuevoSector) => db('Aliado').where({ idAliado }).update({ sector: nuevoSector }),
+    updateAliadoInstitucion: (idAliado, nuevaInstitucion) => db('Aliado').where({ idAliado }).update({ institucion: nuevaInstitucion }),
+    updateAliadoPass: (idAliado, nuevaContrasena) => db('Aliado').where({ idAliado }).update({ contrasena: nuevaContrasena }), 
+    
+    //Apartado para obetener datos del administrador/es
+    getAliadoById: (idAliado) => db('Aliado').where({ idAliado }).first(), //Regresa UN solo objeto gracias al .first()
+    getAliadoByMail: (correo_electronico) => db('Aliado').where({ correo_electronico }).first(), //Regresa UN solo objeto gracias al .first()
+    getAliadoByMuncipio: (municipio) => db('Aliado').where({ municipio }).select('*'), //Regresa UN solo objeto gracias al .first()
+    getAliadoByCURP: (CURP) => db('Aliado').where({ CURP }).first(), //Regresa UN solo objeto gracias al .first()
+    getAliadoByInstitucion: (institucion) => db('Aliado').where({ institucion }).first(), //Regresa UN solo objeto gracias al .first()
+    getAllAliados: () => db('Aliado').select('*'), //Regresa todos los objetos de la tabla en un array gracias al .select('*')
+};
+
+module.exports = AliadoModel; //Exportamos el modelo para usarlo en otros archivos
