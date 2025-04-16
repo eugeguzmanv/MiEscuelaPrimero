@@ -18,11 +18,26 @@
             <label for="cct">Ingresa el CCT de la escuela a la que representas:</label>
             <input type="text" id="cct" name="cct" placeholder="Clave CCT" >
 
-            <label for="nombre">Nombre:</label>
-            <input type="text" id="nombre" name="nombre" >
-
             <label for="rol">Rol en la escuela:</label>
             <input type="text" id="rol" name="rol"  >
+
+            <label for="telefono_representante">Número de teléfono:</label>
+            <input type="tel" id="telefono_representante" name="telefono_representante" placeholder="Ejemplo: 3312345678">
+
+            <label for="anios_servicio">Años de servicio:</label>
+            <input type="number" id="anios_servicio" name="anios_servicio" min="0" placeholder="Ejemplo: 10">
+
+            <label for="cambio_zona">¿Ha pasado por algún cambio de zona escolar?</label>
+            <select id="cambio_zona" name="cambio_zona">
+                <option value="si">Sí</option>
+                <option value="no">No</option>
+            </select>
+
+            <label for="proceso_jubilacion">¿Actualmente se encuentra en proceso, o está pensando en comenzar el proceso de jubilación?</label>
+            <select id="proceso_jubilacion" name="proceso_jubilacion">
+                <option value="si">Sí</option>
+                <option value="no">No</option>
+            </select>
 
             <button type="button" onclick="window.location.href='mainEscuela.html'">Vincular</button>
         </form>
