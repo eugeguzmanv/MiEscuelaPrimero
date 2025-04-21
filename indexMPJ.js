@@ -82,7 +82,7 @@ app.post('/api/admin/login', async (req, res) => {
         //Validar que la contraseña sea correcta
         const passwordMatch = await bcrypt.compare(contrasena, admin.contrasena);
         if (!passwordMatch) {
-        return res.status(401).json({ error: 'Cpntraseña incorrecta' });
+        return res.status(401).json({ error: 'Contraseña incorrecta' });
     }
 
         //Si todo es correcto, iniciar sesión
@@ -94,7 +94,7 @@ app.post('/api/admin/login', async (req, res) => {
 });
 
 //Endpoint para actualizar datos del administrador
-app.put('/api/admin/:id/perfil', async (req, res) => { 
+app.put('/api/admin/:idAdmin/perfil', async (req, res) => { 
     try{
         const idAdmin = req.params.id;
         const {nuevoCorreo, nuevaContrasena, nuevoNombre} = req.body;
@@ -324,7 +324,6 @@ app.put('/api/admin/necesidades/:id/validar', async (req, res) =>{
 
 
 //Endpoints para Validar escuelas y aliados
-//Endpoint para visualizar aliados pendientes de validación
 
 
 
@@ -409,7 +408,7 @@ app.post('/api/login/representante_escuela', async (req, res) => {
 });
 
 //Endpoint de actualizar datos del Representante
-app.put('/api/representantes/:id', async (req, res) => {
+app.put('/api/representantes/:idRepresentante', async (req, res) => {
     try{
         const {idRepresentante, nuevoNombre, nuevoCorreo, nuevaContrasena, nuevoTelefono, nuevoRol, nuevoAnios, nuevoProximo, nuevoCambio} = req.body;
         //Validar que existe el representante
