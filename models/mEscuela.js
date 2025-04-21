@@ -17,7 +17,6 @@ const EscuelaModel = {
         colonia: escuelData.colonia,
         municipio: escuelData.municipio,
         numero: escuelData.numero,
-        descripcion: escuelData.descripcion,
         control_administrativo: escuelData.control_administrativo,
         numero_estudiantes: escuelData.numero_estudiantes,
     }),
@@ -25,9 +24,12 @@ const EscuelaModel = {
     //Apartado de actualización de datos
     updateEscuelaName: (CCT, nuevoNombre) => db('Escuela').where({ CCT }).update({ nombre: nuevoNombre }),
     updateEscuelaModalidad: (CCT, nuevaModalidad) => db('Escuela').where({ CCT }).update({ modalidad: nuevaModalidad }),
-    updateEscuelaDescripcion: (CCT, nuevaDescripcion) => db('Escuela').where({ CCT }).update({ descripcion: nuevaDescripcion }),
-    updateEscuelaControl_administrativo: (CCT, nuevoControl) => db('Escuela').where({ CCT }).update({ control_administrativo: nuevoControl }),
-    updateEscuelaNumero_estudiantes: (CCT, nuevoNumero) => db('Escuela').where({ CCT }).update({ numero_estudiantes: nuevoNumero }),
+    updateEscuelaNivel_educativo: (CCT, nuevoNivel) => db('Escuela').where({ CCT }).update({ nivel_educativo: nuevoNivel }),
+    updateEscuelaMunicipio: (CCT, nuevoMunicipio) => db('Escuela').where({ CCT }).update({ municipio: nuevoMunicipio }),
+    updateEscuelaCalle: (CCT, nuevaCalle) => db('Escuela').where({ CCT }).update({ calle: nuevaCalle }),
+    updateEscuelaColonia: (CCT, nuevaColonia) => db('Escuela').where({ CCT }).update({ colonia: nuevaColonia }),
+    updateEscuelaNumero: (CCT, nuevoNumero) => db('Escuela').where({ CCT }).update({ numero: nuevoNumero }),
+    updateEscuelaNumero_estudiantes: (CCT, nuevoNumeroAlumnos) => db('Escuela').where({ CCT }).update({ numero_estudiantes: nuevoNumeroAlumnos }),
 
 
     //Obtener datos de las escuelas

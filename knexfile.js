@@ -4,8 +4,8 @@ module.exports = {
         connection: {
             host: 'localhost',
             database: 'mpj_db',
-            user: 'diegompj',
-            password: 'diego',
+            user: 'postgres',
+            password: '230504',
         },
         migrations: {
             directory: './migrations',

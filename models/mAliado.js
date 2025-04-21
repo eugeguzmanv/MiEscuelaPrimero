@@ -10,7 +10,6 @@ const AliadoModel = {
         contrasena: aliadoData.contrasena,
         CURP: aliadoData.CURP,
         institucion: aliadoData.institucion,
-        sector: aliadoData.sector,
         calle: aliadoData.calle,
         colonia: aliadoData.colonia,
         municipio: aliadoData.municipio,
@@ -20,13 +19,34 @@ const AliadoModel = {
 
 
     //Apartado de actualización de datos
-    updateAliadoName: (idAliado, nuevoNombre) => db('Aliado').where({ idAliado }).update({ nombre: nuevoNombre }),
-    updateAliadoMail: (idAliado, nuevoCorreo) => db('Aliado').where({ idAliado }).update({ correo_electronico: nuevoCorreo }),
-    updateAliadoMunicipio: (idAliado, nuevoMunicipio) => db('Aliado').where({ idAliado }).update({ municipio: nuevoMunicipio }),
-    updateAliadoSector: (idAliado, nuevoSector) => db('Aliado').where({ idAliado }).update({ sector: nuevoSector }),
-    updateAliadoInstitucion: (idAliado, nuevaInstitucion) => db('Aliado').where({ idAliado }).update({ institucion: nuevaInstitucion }),
-    updateAliadoPass: (idAliado, nuevaContrasena) => db('Aliado').where({ idAliado }).update({ contrasena: nuevaContrasena }), 
-    
+    //ACTUALIZACIONES GENERALES
+  updateNombre: (idAliado, nuevoNombre) =>
+    db('Aliado').where({ idAliado }).update({ nombre: nuevoNombre }),
+
+  updateCorreo: (idAliado, nuevoCorreo) =>
+    db('Aliado').where({ idAliado }).update({ correo: nuevoCorreo }),
+
+  updateDescripcion: (idAliado, nuevaDescripcion) =>
+    db('Aliado').where({ idAliado }).update({ descripcion: nuevaDescripcion }),
+
+  updateContrasena: (idAliado, hashedPassword) =>
+    db('Aliado').where({ idAliado }).update({ contrasena: hashedPassword }),
+
+  updateDireccion: (idAliado, direccion) =>
+    db('Aliado').where({ idAliado }).update({
+      calle: direccion.calle,
+      numero: direccion.numero,
+      colonia: direccion.colonia,
+      municipio: direccion.municipio
+    }),
+
+  //DATOS PERSONA FÍSICA
+  updateInstitucion: (idAliado, institucion) =>
+    db('Aliado').where({ idAliado }).update({ institucion }),
+
+  updateCURP: (idAliado, curp) =>
+    db('Aliado').where({ idAliado }).update({ curp }),
+
     //Apartado para obetener datos del administrador/es
     getAliadoById: (idAliado) => db('Aliado').where({ idAliado }).first(), //Regresa UN solo objeto gracias al .first()
     getAliadoByMail: (correo_electronico) => db('Aliado').where({ correo_electronico }).first(), //Regresa UN solo objeto gracias al .first()
