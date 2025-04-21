@@ -1,0 +1,157 @@
+.escuelas-container {
+    padding: 20px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.escuelas-section {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.escuelas-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    padding: 20px 0;
+}
+
+.escuela-card {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 25px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.escuela-card h2 {
+    color: #2C8B3F;
+    font-size: 20px;
+    margin: 0 0 20px 0;
+    font-weight: 600;
+}
+
+.info-group {
+    margin-bottom: 15px;
+}
+
+.info-group label {
+    display: block;
+    color: #2C8B3F;
+    font-size: 14px;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.info-group p {
+    color: #333333;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.direccion-group {
+    margin-bottom: 15px;
+}
+
+.direccion-group label {
+    color: #2C8B3F;
+    font-size: 14px;
+    margin-bottom: 4px;
+    font-weight: 500;
+    display: block;
+}
+
+.direccion-details {
+    margin-left: 0;
+    color: #333333;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.descripcion-group {
+    margin-bottom: 15px;
+}
+
+.descripcion-group label {
+    color: #2C8B3F;
+    font-size: 14px;
+    margin-bottom: 4px;
+    font-weight: 500;
+    display: block;
+}
+
+.descripcion-group p {
+    color: #333333;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.contactar-btn {
+    background: #FF6B00;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 15px;
+    transition: background-color 0.2s;
+}
+
+.contactar-btn:hover {
+    background: #E65000;
+}
+
+/* Add button styles */
+.add-escuela-button {
+    background-color: #009933;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    margin-bottom: 20px;
+    transition: background-color 0.3s;
+}
+
+.add-escuela-button:hover {
+    background-color: #007726;
+}
+
+/* Status indicator */
+.escuela-status {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    margin-top: 10px;
+}
+
+.status-active {
+    background-color: #e8f5e9;
+    color: #009933;
+}
+
+.status-pending {
+    background-color: #fff3e0;
+    color: #f57c00;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .escuelas-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .escuela-card {
+        margin: 10px;
+    }
+} 

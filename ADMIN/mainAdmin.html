@@ -1,7 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Main para admin</title>
+    <title>Main para administrador</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Load styles -->
+    <link rel="stylesheet" type="text/css" href="../styles/DashboardLayout.css">
+    <link rel="stylesheet" type="text/css" href="../styles/Perfil.css">
+    <link rel="stylesheet" type="text/css" href="../styles/Escuelas.css">
+    <link rel="stylesheet" type="text/css" href="../styles/Aliados.css">
+    <link rel="stylesheet" type="text/css" href="../styles/Proyectos.css">
+    <!-- Add Montserrat font -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Load JavaScript -->
+    <script src="../scripts/mainAdmin.js"></script>
 </head>
 <body>
     <!-- Parte superior de la página -->
@@ -11,9 +24,315 @@
     </div>
 
     <!-- Contenedor principal -->
-    <div class="form-container">
-        <h2>Main de Administrador</h2>
-        
+    <div class="dashboard-content">
+        <!-- Horizontal Navigation Menu -->
+        <div class="side-menu">
+            <nav>
+                <a href="#" class="menu-item active" onclick="showSection('perfil')">Perfil</a>
+                <a href="#" class="menu-item" onclick="showSection('escuelas')">Escuelas</a>
+                <a href="#" class="menu-item" onclick="showSection('aliados')">Aliados</a>
+                <a href="#" class="menu-item" onclick="showSection('proyectos')">Proyectos</a>
+            </nav>
+        </div>
+
+        <!-- Content Area -->
+        <main class="main-content">
+            <!-- Perfil Section -->
+            <div id="perfil-section" class="content-section">
+                <div class="perfil-container">
+                    <h2>Perfil del Administrador</h2>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Nombre:</label>
+                            <p>Juan Pérez González</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Correo:</label>
+                            <p>juan.perez@mexicanosprimero.org</p>
+                        </div>
+                        <div class="info-item">
+                            <label>Contraseña:</label>
+                            <p>••••••••••</p>
+                        </div>
+                    </div>
+                    <button class="edit-button">Editar información</button>
+                </div>
+            </div>
+
+            <!-- Escuelas Section -->
+            <div id="escuelas-section" class="content-section" style="display: none;">
+                <div class="escuelas-container">
+                    <div class="escuelas-grid">
+                        <div class="escuela-card">
+                            <h2>Escuela Primaria Juan Escutia</h2>
+                            <div class="info-group">
+                                <label>CCT:</label>
+                                <p>14DPR3856K</p>
+                            </div>
+                            <div class="info-group">
+                                <label>Nivel Educativo:</label>
+                                <p>Primaria</p>
+                            </div>
+                            <div class="direccion-group">
+                                <label>Dirección:</label>
+                                <div class="direccion-details">
+                                    <p>Calle: Revolución</p>
+                                    <p>Número: 234</p>
+                                    <p>Colonia: Centro</p>
+                                    <p>Municipio: Guadalajara</p>
+                                </div>
+                            </div>
+                            <div class="info-group">
+                                <label>Número de estudiantes:</label>
+                                <p>450</p>
+                            </div>
+                            <div class="descripcion-group">
+                                <label>Descripción:</label>
+                                <p>Escuela primaria pública con programas especiales de arte y deporte. Participante activa en programas de mejora educativa.</p>
+                            </div>
+                            <button class="edit-btn">Editar</button>
+                        </div>
+
+                        <div class="escuela-card">
+                            <h2>Primaria y Preescolar Miguel Hidalgo</h2>
+                            <div class="info-group">
+                                <label>CCT:</label>
+                                <p>14DST0015Z</p>
+                            </div>
+                            <div class="info-group">
+                                <label>Nivel Educativo:</label>
+                                <p>Preescolar y Primaria</p>
+                            </div>
+                            <div class="direccion-group">
+                                <label>Dirección:</label>
+                                <div class="direccion-details">
+                                    <p>Calle: López Mateos</p>
+                                    <p>Número: 1250</p>
+                                    <p>Colonia: Chapalita</p>
+                                    <p>Municipio: Zapopan</p>
+                                </div>
+                            </div>
+                            <div class="info-group">
+                                <label>Número de estudiantes:</label>
+                                <p>680</p>
+                            </div>
+                            <div class="descripcion-group">
+                                <label>Descripción:</label>
+                                <p>Escuela preescolar y primaria con más de 50 años de experiencia en la educación.</p>
+                            </div>
+                            <button class="edit-btn">Editar</button>
+                        </div>
+
+                        <div class="escuela-card">
+                            <h2>Primaria Benito Juárez</h2>
+                            <div class="info-group">
+                                <label>CCT:</label>
+                                <p>14DPR3242Y</p>
+                            </div>
+                            <div class="info-group">
+                                <label>Nivel Educativo:</label>
+                                <p>Primaria</p>
+                            </div>
+                            <div class="direccion-group">
+                                <label>Dirección:</label>
+                                <div class="direccion-details">
+                                    <p>Calle: Hidalgo</p>
+                                    <p>Número: 789</p>
+                                    <p>Colonia: Santa Teresita</p>
+                                    <p>Municipio: Guadalajara</p>
+                                </div>
+                            </div>
+                            <div class="info-group">
+                                <label>Número de estudiantes:</label>
+                                <p>380</p>
+                            </div>
+                            <div class="descripcion-group">
+                                <label>Descripción:</label>
+                                <p>Escuela con enfoque en desarrollo integral y programas de inclusión educativa.</p>
+                            </div>
+                            <button class="edit-btn">Editar</button>
+                        </div>
+
+                        <div class="escuela-card">
+                            <h2>Jardín de Niños México</h2>
+                            <div class="info-group">
+                                <label>CCT:</label>
+                                <p>14DES0089X</p>
+                            </div>
+                            <div class="info-group">
+                                <label>Nivel Educativo:</label>
+                                <p>Preescolar</p>
+                            </div>
+                            <div class="direccion-group">
+                                <label>Dirección:</label>
+                                <div class="direccion-details">
+                                    <p>Calle: Federalismo</p>
+                                    <p>Número: 456</p>
+                                    <p>Colonia: Moderna</p>
+                                    <p>Municipio: Guadalajara</p>
+                                </div>
+                            </div>
+                            <div class="info-group">
+                                <label>Número de estudiantes:</label>
+                                <p>520</p>
+                            </div>
+                            <div class="descripcion-group">
+                                <label>Descripción:</label>
+                                <p>Jardín de Niños México es un jardín de niños con programas de arte y deporte.</p>
+                            </div>
+                            <button class="edit-btn">Editar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aliados Section -->
+            <div id="aliados-section" class="content-section" style="display: none;">
+                <div class="aliados-container">
+                    <div class="aliados-grid">
+                        <div class="aliado-card">
+                            <h2>Fundación Educar Uno</h2>
+                            <div class="info-group">
+                                <label>Sector:</label>
+                                <p>Educación</p>
+                            </div>
+                            <div class="direccion-group">
+                                <label>Dirección:</label>
+                                <div class="direccion-details">
+                                    <p>Calle: Av. Vallarta</p>
+                                    <p>Número: 1458</p>
+                                    <p>Colonia: Americana</p>
+                                    <p>Municipio: Guadalajara</p>
+                                </div>
+                            </div>
+                            <div class="info-group">
+                                <label>Categoría de Apoyo:</label>
+                                <p>Infraestructura Educativa</p>
+                            </div>
+                            <button class="edit-btn">Editar</button>
+                        </div>
+
+                        <div class="aliado-card">
+                            <h2>Instituto Tecnológico Superior</h2>
+                            <div class="info-group">
+                                <label>Sector:</label>
+                                <p>Tecnología</p>
+                            </div>
+                            <div class="direccion-group">
+                                <label>Dirección:</label>
+                                <div class="direccion-details">
+                                    <p>Calle: López Mateos Sur</p>
+                                    <p>Número: 2435</p>
+                                    <p>Colonia: Ciudad del Sol</p>
+                                    <p>Municipio: Zapopan</p>
+                                </div>
+                            </div>
+                            <div class="info-group">
+                                <label>Categoría de Apoyo:</label>
+                                <p>Equipamiento Tecnológico</p>
+                            </div>
+                            <button class="edit-btn">Editar</button>
+                        </div>
+
+                        <div class="aliado-card">
+                            <h2>Fundación Cultural de Occidente</h2>
+                            <div class="info-group">
+                                <label>Sector:</label>
+                                <p>Arte y Cultura</p>
+                            </div>
+                            <div class="direccion-group">
+                                <label>Dirección:</label>
+                                <div class="direccion-details">
+                                    <p>Calle: Juárez</p>
+                                    <p>Número: 876</p>
+                                    <p>Colonia: Centro</p>
+                                    <p>Municipio: Tlaquepaque</p>
+                                </div>
+                            </div>
+                            <div class="info-group">
+                                <label>Categoría de Apoyo:</label>
+                                <p>Programas Culturales</p>
+                            </div>
+                            <button class="edit-btn">Editar</button>
+                        </div>
+
+                        <div class="aliado-card">
+                            <h2>Asociación Deportiva Jalisco</h2>
+                            <div class="info-group">
+                                <label>Sector:</label>
+                                <p>Deporte</p>
+                            </div>
+                            <div class="direccion-group">
+                                <label>Dirección:</label>
+                                <div class="direccion-details">
+                                    <p>Calle: Revolución</p>
+                                    <p>Número: 543</p>
+                                    <p>Colonia: Jardines del Sol</p>
+                                    <p>Municipio: Zapopan</p>
+                                </div>
+                            </div>
+                            <div class="info-group">
+                                <label>Categoría de Apoyo:</label>
+                                <p>Infraestructura Deportiva</p>
+                            </div>
+                            <button class="edit-btn">Editar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Proyectos Section -->
+            <div id="proyectos-section" class="content-section" style="display: none;">
+                <div class="proyectos-container">
+                    <h2>Proyectos Activos</h2>
+                    <div class="proyectos-section">
+                        <div id="proyectos-grid" class="proyectos-grid">
+                            <div class="proyecto-card">
+                                <h3>Nombre del Aliado: Muebles González S.A. de C.V.</h3>
+                                <h3>Nombre de la Escuela: Escuela Primaria Juan Escutia</h3>
+                                <div class="proyecto-info">
+                                    <p><strong>Fecha de inicio:</strong> 01/03/2024</p>
+                                    <p><strong>Fecha de finalización:</strong> 27/12/2024</p>
+                                </div>
+                                <button class="actividades-btn">Actividades</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                </div>
+                <div class="proyectos-container">
+                    <div class="proyectos-section">
+                        <div id="proyectos-grid" class="proyectos-grid">
+                            <div class="proyecto-card">
+                                <h3>Nombre del Aliado: ITESO Universidad Jesuita de Guadalajara</h3>
+                                <h3>Nombre de la Escuela: Escuela Primaria Benito Juárez</h3>
+                                <div class="proyecto-info">
+                                    <p><strong>Fecha de inicio:</strong> 29/01/2025</p>
+                                    <p><strong>Fecha de finalización:</strong> 27/10/2025</p>
+                                </div>
+                                <button class="actividades-btn">Actividades</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="proyectos-container">
+                    <div class="proyectos-section">
+                        <div id="proyectos-grid" class="proyectos-grid">
+                            <div class="proyecto-card">
+                                <h3>Nombre del Aliado: Fundación Cultural de Occidente</h3>
+                                <h3>Nombre de la Escuela: Preescolar y Primaria Miguel Hidalgo</h3>
+                                <div class="proyecto-info">
+                                    <p><strong>Fecha de inicio:</strong> 13/09/2024</p>
+                                    <p><strong>Fecha de finalización:</strong> 18/05/2025</p>
+                                </div>
+                                <button class="actividades-btn">Actividades</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 </body>
 </html>

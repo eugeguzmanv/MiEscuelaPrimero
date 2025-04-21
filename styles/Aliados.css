@@ -1,0 +1,148 @@
+.aliados-container {
+    padding: 20px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.aliados-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    padding: 20px 0;
+}
+
+.aliado-card {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 25px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.aliado-card h2 {
+    color: #2C8B3F;
+    font-size: 20px;
+    margin: 0 0 20px 0;
+    font-weight: 600;
+}
+
+.info-group {
+    margin-bottom: 15px;
+}
+
+.info-group label {
+    display: block;
+    color: #2C8B3F;
+    font-size: 14px;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.info-group p {
+    color: #333333;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.direccion-group {
+    margin-bottom: 15px;
+}
+
+.direccion-group label {
+    color: #2C8B3F;
+    font-size: 14px;
+    margin-bottom: 4px;
+    font-weight: 500;
+    display: block;
+}
+
+.direccion-details {
+    margin-left: 0;
+    color: #333333;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.contactar-btn  {
+    background: #FF6B00;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 15px;
+    transition: background-color 0.2s;
+}
+
+.contactar-btn:hover {
+    background: #E65000;
+}
+
+.edit-btn {
+    background: #FF6B00;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 15px;
+    transition: background-color 0.2s;
+}
+
+.edit-btn:hover {
+    background: #E65000;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .aliados-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .aliado-card {
+        margin: 10px;
+    }
+}
+
+.aliado-logo {
+    width: 100%;
+    height: 120px;
+    object-fit: contain;
+    margin-bottom: 15px;
+}
+
+.aliado-name {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin: 10px 0;
+    color: #333;
+}
+
+.aliado-description {
+    color: #666;
+    font-size: 0.9em;
+    line-height: 1.5;
+}
+
+.add-aliado-button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    margin-bottom: 20px;
+    transition: background-color 0.3s;
+}
+
+.add-aliado-button:hover {
+    background-color: #218838;
+} 

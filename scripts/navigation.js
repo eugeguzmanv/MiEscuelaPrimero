@@ -49,21 +49,23 @@ function finalizarRegistroAliado() {
 document.addEventListener("DOMContentLoaded", function () {
     const loginButton = document.querySelector("button[type='submit']");
 
-    loginButton.addEventListener("click", function (event) {
-        event.preventDefault(); // Evita que el formulario se envíe automáticamente
+    if (loginButton) {
+        loginButton.addEventListener("click", function (event) {
+            event.preventDefault(); // Evita que el formulario se envíe automáticamente
 
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
 
-        // Validar las credenciales y redireccionar según corresponda
-        if (email === "escuela@gmail.com" && password === "escuela") {
-            window.location.href = "ESCUELA/mainEscuela.html";
-        } else if (email === "aliado@gmail.com" && password === "aliado") {
-            window.location.href = "ALIADO/mainAliado.html";
-        } else if (email === "admin@mpj.org.mx" && password === "admin") {
-            window.location.href = "ADMIN/mainAdmin.html";
-        } else {
-            alert("Credenciales incorrectas. Por favor, inténtalo de nuevo.");
-        }
-    });
+            // Validar las credenciales y redireccionar según corresponda
+            if (email === "escuela@gmail.com" && password === "escuela") {
+                window.location.href = "ESCUELA/mainEscuela.html";
+            } else if (email === "aliado@gmail.com" && password === "aliado") {
+                window.location.href = "ALIADO/mainAliado.html";
+            } else if (email === "admin@mpj.org.mx" && password === "admin") {
+                window.location.href = "ADMIN/mainAdmin.html";
+            } else {
+                alert("Credenciales incorrectas. Por favor, inténtalo de nuevo.");
+            }
+        });
+    }
 });

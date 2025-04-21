@@ -1,0 +1,17 @@
+.edit-btn {
+    background: #FF6B00;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 15px;
+    transition: background-color 0.2s;
+}
+
+.edit-btn:hover {
+    background: #E65000;
+} 
