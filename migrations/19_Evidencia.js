@@ -16,7 +16,7 @@ exports.up = function(knex) {
     table.integer('idReferencia').notNullable();
 
     // Tipo de referencia: Apoyo o Necesidad
-    table.enu('tipoReferencia', ['Apoyo', 'Necesidad', 'Actividad']).notNullable();
+    table.enu('tipoReferencia', ['Apoyo', 'Necesidad']).notNullable();
 
     // Índice para consultas rápidas
     table.index(['idReferencia', 'tipoReferencia']);
