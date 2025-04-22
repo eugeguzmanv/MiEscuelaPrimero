@@ -1354,7 +1354,7 @@ WHERE 1=1
                 colonia: a.colonia,
                 municipio: a.municipio
             },
-            curp: a.curp,
+            curp: a.CURP,
             institucion: a.institucion,
             ...(a.tipo === 'moral' && {
                 nombre_organización: pm.nombre_organizacion,
