@@ -7,8 +7,8 @@ exports.up = function(knex) {
         table.string('nombre').notNullable();
         table.string('contraseña').notNullable();
         table.string('CURP').notNullable();
+        table.string('categoria_apoyo').notNullable(); 
         table.string('institucion').notNullable();
-        table.string('sector').notNullable();
         table.string('calle').notNullable();
         table.string('colonia').notNullable();
         table.string('municipio').notNullable();

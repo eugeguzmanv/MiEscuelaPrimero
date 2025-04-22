@@ -12,6 +12,7 @@ const RepresentanteModel = {
         correo_electronico: repreData.correo_electronico,
         contrasena: repreData.contrasena,
         numero_telefonico: repreData.numero_telefonico,
+        CCT: repreData.CCT,
         rol: repreData.rol,
         anios_experiencia: repreData.anios_experiencia,
         proximo_a_jubilarse: repreData.proximo_a_jubilarse || false, //se agrega el false para que no sea obligatorio
