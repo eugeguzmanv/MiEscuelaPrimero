@@ -1,26 +1,13 @@
 exports.up = function(knex) {
     return knex.schema.createTable('Evidencia', (table) => {
-        table.increments('idEvidencia').primary();
-        /*table.integer('idApoyo').notNullable(); //idApoyo del apoyo que recibe la escuela
-        table.foreign('idApoyo').references('idApoyo').inTable('Apoyo'); //Foreing key de la tabla Apoyo
-        table.integer('idNecesidad').notNullable(); //idNecesidad de la necesidad que recibe el apoyo
-        table.foreign('idNecesidad').references('idNecesidad').inTable('Necesidad'); //Foreing key de la tabla Necesidad
-        table.string('nombre').notNullable();
-        table.string('ruta').notNullable();*/
-    table.text('ruta').notNullable();
-    table.text('nombre');
-    table.enu('tipo_evidencia', ['imagen', 'documento', 'video']).notNullable();
-
-    // Polimorfismo: el ID de la entidad relacionada (Apoyo o Necesidad o Actividad) para no tener muchas columnas de id
-    // NO ES SEGURO SI INCLUIR ID DE ACTIVIDAD
-    table.integer('idReferencia').notNullable();
-
-    // Tipo de referencia: Apoyo o Necesidad
-    table.enu('tipoReferencia', ['Apoyo', 'Necesidad']).notNullable();
-
-    // Índice para consultas rápidas
-    table.index(['idReferencia', 'tipoReferencia']);
-  });
+    table.increments('idEvidencia').primary(); // ID de la evidencia
+    table.integer('idApoyo').notNullable(); // ID del apoyo al que pertenece la evidencia
+    table.foreign('idApoyo').references('idApoyo').inTable('Apoyo'); // Foreign key de la tabla Apoyo
+    table.integer('idNecesidad').notNullable(); // ID de la necesidad a la que pertenece la evidencia
+    table.foreing('idNecesidad').references('idNecesidad').inTable('Necesidad'); // Foreign key de la tabla Necesidad
+    table.string('nombre').notNullable(); // Nombre de la evidencia
+    table.string('ruta').notNullable(); // Ruta de la evidencia
+    });
 };
 
 exports.down = function(knex) {

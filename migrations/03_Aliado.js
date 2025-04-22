@@ -3,7 +3,6 @@ exports.up = function(knex) {
     return knex.schema.createTable('Aliado', (table) => {
         table.increments('idAliado').primary();
         table.string('correo_electronico').notNullable();
-        table.string('tipo').notNullable();
         table.string('nombre').notNullable();
         table.string('contraseña').notNullable();
         table.string('CURP').notNullable();
@@ -14,8 +13,6 @@ exports.up = function(knex) {
         table.string('municipio').notNullable();
         table.integer('numero').notNullable(); //Revisar tipo de dato a ingresar
         table.string('descripcion').notNullable();
-        table.enu('estado_validacion', ['pendiente', 'validado', 'rechazado']).defaultTo('pendiente');
-        table.text('comentario_admin');
     });
 };
 

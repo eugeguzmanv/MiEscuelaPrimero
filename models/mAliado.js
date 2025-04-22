@@ -7,7 +7,7 @@ const AliadoModel = {
     createAliado: (aliadoData) => db('Aliado').insert({
         correo_electronico: aliadoData.correo_electronico,
         nombre: aliadoData.nombre,
-        contrasena: aliadoData.contrasena,
+        contraseña: aliadoData.contraseña,
         CURP: aliadoData.CURP,
         institucion: aliadoData.institucion,
         sector: aliadoData.sector,

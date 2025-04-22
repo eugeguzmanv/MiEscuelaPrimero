@@ -39,7 +39,8 @@ app.post('/api/registroAdmin', async (req, res) => {
         const existingAdmin = await AdminModel.getAdminByMail(correo_electronico);
         if(existingAdmin){
             return res.status(409).json({ error: 'El correo ya está registrado'});
-        }   
+        }
+        await AdminModel.createAdmin({ nombre, correo_electronico, contrasena});
         return res.status(201).json({ message: 'Administrador registrado exitosamente'});
     }catch(error) {
         console.error('Error al registrar administrador:', error);
@@ -62,6 +63,7 @@ app.post('/api/loginAdmin', async (req, res) => {
 
         //Validar que la información exista en la base de datos
         const existingAdmin = await AdminModel.getAdminByMail(correo_electronico);
+        console.log("Hola desde el if de la validación del correo de loginAdmin", existingAdmin);
         if(!existingAdmin){
             return res.status(404).json({ error: 'El correo no está registrado'});
         }
@@ -82,17 +84,22 @@ app.post('/api/loginAdmin', async (req, res) => {
 //Endpoint para actualizar datos del administrador
 app.put('/api/actualizarAdmin/:id', async (req, res) => { 
     try{
+        console.log("Hola desde dentro del try de actualizarAdmin");
         const idAdmin = req.params.id;
         const {nuevoCorreo, nuevaContrasena, nuevoNombre} = req.body;
 
         //Validar que el admin existe
+        console.log("Hola antes de la validación del idAdmin de actualizarAdmin");
         const adminActual = await AdminModel.getAdminById(idAdmin);
+        console.log("Hola después de la validación del idAdmin de actualizarAdmin");
         if(!adminActual){
+            console.log("Hola desde dentro del if de actualizarAdmin");
             return res.status(404).json({ error: 'Administrador no encontrado'});
         }
 
         //Validar el formato del correo (si se llega a enviar)
         if(nuevoCorreo){
+            console.log("Hola desde dentro del if de nuevoCorreo de actualizarAdmin");
             const emailRegex = /^[a-zA-Z0-9._%+-]+@mpj\.com$/; //Expresión regular para validar el correo
             if(!emailRegex.test(nuevoCorreo)) {
                 return res.status(400).json({ error: 'El correo no es válido' });
@@ -100,6 +107,7 @@ app.put('/api/actualizarAdmin/:id', async (req, res) => {
 
             //Validar que si el correo ya existe (solo si es diferente al actual)
             if(nuevoCorreo !== adminActual.correo_electronico){
+                console.log("Hola desde dentro del if de nuevoCorreo !== adminActual.correo_electronico de actualizarAdmin");
                 const existeCorreo = await AdminModel.getAdminByMail(nuevoCorreo);
                 if(existeCorreo){
                     return res.status(409).json({ error: 'El correo ya está registrado'});
@@ -109,9 +117,11 @@ app.put('/api/actualizarAdmin/:id', async (req, res) => {
 
         //Actualizar campos
         if (nuevoNombre) {
+            console.log("Hola desde dentro del if de nuevoNombre de actualizarAdmin");
             await AdminModel.updateAdminName(idAdmin, nuevoNombre); // Actualiza "nombre"
         }
         if (nuevoCorreo) {
+            console.log("Hola desde dentro del if de nuevoCorreo de actualizarAdmin");
             const newEmail = await AdminModel.getAdminByMail(nuevoCorreo);
             if(newEmail?.idAdmin !== undefined && newEmail.idAdmin !== idAdmin){
                 return res.status(400).json({ error: 'El correo ya está registrado'});
@@ -119,6 +129,7 @@ app.put('/api/actualizarAdmin/:id', async (req, res) => {
             await AdminModel.updateAdminMail(idAdmin, nuevoCorreo); // Actualiza "correo_electronico"
         }
         if (nuevaContrasena) {
+            console.log("Hola desde dentro del if de nuevaContrasena de actualizarAdmin");
             const hashedPassword = await bcrypt.hash(nuevaContrasena, 10); // Hashear nueva contraseña
             await AdminModel.updateAdminPass(idAdmin, hashedPassword); // Actualiza "contrasena"
         }
@@ -146,7 +157,7 @@ app.post('/api/restablecerAdminContrasena', async (req, res) => {
             return res.status(404).json({ error: 'El correo no está registrado'});
         }
 
-        const contrasenaRecuperada = admin.contrasena;
+        const contrasenaRecuperada = existingAdmin.contrasena;
         //Enviar un email para restablecer la contraseña
         return res.status(200).json({ message: 'Se ha enviado un correo para restablecer la contraseña'});
     }catch(error){
@@ -168,7 +179,7 @@ app.post('/api/registroRepre', async (req, res) => {
         }
 
         // Verificar que la escuela exista
-        const escuela = await RepresentanteModel.getEscuelaById(CCT)
+        const escuela = await RepresentanteModel.getRepresentanteById(CCT);
         if (!escuela) {
             return res.status(404).json({ error: 'CCT de escuela no válido' });
         }
@@ -186,7 +197,7 @@ app.post('/api/registroRepre', async (req, res) => {
         }
 
         //Registrar al Representante
-        await RepresentanteModel.createRepresentante({ nombre, correo_electronico, contrasena: hashedPassword, numero_telefonico, rol, anios_experiencia, proximo_a_jubilarse, cambio_zona, cct });
+        await RepresentanteModel.createRepresentante({ nombre, correo_electronico, contrasena, numero_telefonico, rol, anios_experiencia, proximo_a_jubilarse, cambio_zona, CCT });
 
         return res.status(201).json({ message: 'Representante registrado exitosamente'});
     }catch(error){
@@ -308,7 +319,7 @@ app.post('/api/restablecerRepreContrasena', async (req, res) => {
 //Endpoint de registro de escuela
 app.post('/api/registroEscuela', async (req, res) => { 
     try{
-        const {CCT, nombre, modalidad, nivel_educativo, sector_escolar, sostenimiento, zona_escolar, calle, colonia, municipio, numero,  control_administrativo, numero_estudiantes} = req.body;
+        const {CCT, nombre, modalidad, nivel_educativo, sector_escolar, sostenimiento, zona_escolar, calle, colonia, municipio, numero, descripcion,  control_administrativo, numero_estudiantes} = req.body;
 
         //Validar que no sean campos vacíos
         if(!CCT || !nombre || !modalidad || !nivel_educativo || !sector_escolar || !sostenimiento || !zona_escolar || !calle || !colonia || !municipio || !numero || !control_administrativo || !numero_estudiantes) {
@@ -481,10 +492,10 @@ app.get('/api/escuela/sector_escolar/:sector_escolar', async (req, res) => {
 //Endpoint de registro de aliado
 app.post('/api/registroAliado', async (req, res) => {
     try{
-        const {correo_electronico, nombre, contrasena, CURP, institucion, sector, calle, colonia, municipio, numero, descripcion} = req.body;
+        const {correo_electronico, nombre, contraseña, CURP, institucion, sector, calle, colonia, municipio, numero, descripcion} = req.body;
 
         //Validar que no sean campos vacíos
-        if(!correo_electronico || !nombre || !contrasena || !CURP || !institucion || !sector || !calle || !colonia || !municipio || !numero || !descripcion) {
+        if(!correo_electronico || !nombre || !contraseña || !CURP || !institucion || !sector || !calle || !colonia || !municipio || !numero || !descripcion) {
             return res.status(400).json({ error: 'Todos los campos son obligatorios' });
         }
 
@@ -502,7 +513,7 @@ app.post('/api/registroAliado', async (req, res) => {
         }
 
         //Creamos el Aliado
-        await AliadoModel.createAliado({ correo_electronico, nombre, contrasena, CURP, institucion, sector, calle, colonia, municipio, numero, descripcion });
+        await AliadoModel.createAliado({ correo_electronico, nombre, contraseña, CURP, institucion, sector, calle, colonia, municipio, numero, descripcion });
 
         return res.status(200).json({ message: 'Aliado registrado exitosamente' });
     }catch(error){
@@ -542,7 +553,7 @@ app.post('/api/loginAliado', async (req, res) => {
 //Endpoint para ver el catálogo de aliados por institución (UTILIZAMOS QUERY-STRING)
 app.get('/api/aliado/:institucion', async (req, res) => {
     try{
-        const aliadoInstitucion = req.params.institucion;
+        const aliadoInstitucion = req.params.institucion.trim(); // Eliminar espacios en blanco al inicio y al final
 
         //Validar que no sea un campo vacío
         if(!aliadoInstitucion){

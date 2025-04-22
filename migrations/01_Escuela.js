@@ -11,10 +11,9 @@ exports.up = function(knex) {
         table.string('colonia').notNullable();
         table.string('municipio').notNullable();
         table.string('numero').notNullable();
+        table.string('descripcion').notNullable();
         table.string('control_administrativo').notNullable();
         table.integer('numero_estudiantes').notNullable();
-        table.enu('estado_validacion', ['pendiente', 'validado', 'rechazado']).defaultTo('pendiente');
-        table.text('comentario_admin');
     });
 };
 
