@@ -90,10 +90,9 @@ app.post('/api/admin/login', async (req, res) => {
         }
 
         //Validar que la contraseña sea correcta
-        const passwordMatch = await bcrypt.compare(contrasena, existingAdmin.contrasena);
-        if (!passwordMatch) {
-        return res.status(401).json({ error: 'Contraseña incorrecta' });
-    }
+        if(existingAdmin.contrasena !== contrasena){
+            return res.status(400).json({ error: 'La contraseña es incorrecta'});
+        }
 
         //Si todo es correcto, iniciar sesión
         return res.status(200).json({ message: 'Inicio de sesión exitoso', rol: 'admin'});
@@ -910,7 +909,7 @@ app.post('/api/aliados/registro', async (req, res) => {
 
         // Validación de campos obligatorios
         if (!tipo || !nombre || !correo_electronico || !contraseña || !categoria_apoyo || !descripcion ||
-            !curp || !institucion || !calle || !colonia || !municipio || numero === undefined) {
+            !CURP || !institucion || !calle || !colonia || !municipio || numero === undefined) {
             await trx.rollback();
             return res.status(400).json({ error: 'Todos los campos son obligatorios' });
         }
@@ -1081,7 +1080,7 @@ app.get('/api/aliado/:municipio', async (req, res) => {
         }
 
         //Validar que el aliado exista en la base de datos
-        const existingAliado = await AliadoModel.getAliadoByMunicipio(aliadoMunicipio);
+        const existingAliado = await AliadoModel.getAliadoByMuncipio(aliadoMunicipio);
         if(!existingAliado){
             return res.status(404).json({ error: 'El municipio del aliado no esta registrado'});
         }
