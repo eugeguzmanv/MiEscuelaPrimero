@@ -90,7 +90,7 @@ app.post('/api/admin/login', async (req, res) => {
         }
 
         //Validar que la contraseña sea correcta
-        const passwordMatch = await bcrypt.compare(contrasena, admin.contrasena);
+        const passwordMatch = await bcrypt.compare(contrasena, existingAdmin.contrasena);
         if (!passwordMatch) {
         return res.status(401).json({ error: 'Contraseña incorrecta' });
     }
@@ -897,7 +897,7 @@ app.post('/api/aliados/registro', async (req, res) => {
             numero,
             colonia,
             municipio,
-            curp,
+            CURP,
             institucion,
             // Información de persona moral
             nombre_organizacion,
@@ -922,7 +922,7 @@ app.post('/api/aliados/registro', async (req, res) => {
         }
 
         // Validar CURP única
-        const existingCURP = await trx('Aliado').where({ CURP: curp }).first();
+        const existingCURP = await trx('Aliado').where({ CURP }).first();
         if (existingCURP) {
             await trx.rollback();
             return res.status(409).json({ error: 'La CURP ya está registrada' });
@@ -946,7 +946,7 @@ app.post('/api/aliados/registro', async (req, res) => {
             contraseña: hashedPass,
             categoria_apoyo,
             descripcion,
-            CURP: curp,
+            CURP,
             institucion,
             calle,
             numero,
@@ -972,7 +972,8 @@ app.post('/api/aliados/registro', async (req, res) => {
           giro,
           pagina_web
         }, ['idPersonaMoral']);
-        // Asegúrate de que idPersonaMoral sea un valor numérico
+        
+
         const idPersonaMoral = personaMoral.idPersonaMoral;
 
         // Insertar datos en la tabla Constancia_Fiscal
