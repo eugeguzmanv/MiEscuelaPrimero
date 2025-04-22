@@ -80,7 +80,7 @@ app.post('/api/loginAdmin', async (req, res) => {
 });
 
 //Endpoint para actualizar datos del administrador
-app.put('/api/actualizarAdmin', async (req, res) => { 
+app.put('/api/actualizarAdmin/:id', async (req, res) => { 
     try{
         const idAdmin = req.params.id;
         const {nuevoCorreo, nuevaContrasena, nuevoNombre} = req.body;
@@ -160,17 +160,17 @@ app.post('/api/restablecerAdminContrasena', async (req, res) => {
 //Endpoint de registro de representante
 app.post('/api/registroRepre', async (req, res) => { 
     try{
-        const {nombre, correo_electronico, contrasena, numero_telefonico, rol, anios_experiencia, proximo_a_jubilarse, cambio_zona, cct} = req.body;
+        const {nombre, correo_electronico, contrasena, numero_telefonico, rol, anios_experiencia, proximo_a_jubilarse, cambio_zona, CCT} = req.body;
     
         //Validar que no sean campos vacíos
-        if(!nombre || !correo_electronico || !contrasena || !numero_telefonico || !rol || !anios_experiencia || !cct) {//No consideramos proximo_a_jubilarse y cambio_zona como obligatorios ya que están en false por default
+        if(!nombre || !correo_electronico || !contrasena || !numero_telefonico || !rol || !anios_experiencia || !CCT) {//No consideramos proximo_a_jubilarse y cambio_zona como obligatorios ya que están en false por default
             return res.status(400).json({ error: 'Todos los campos son obligatorios' });
         }
 
         // Verificar que la escuela exista
-        const escuela = await knex('Escuela').where({ CCT: CCT_escuela }).first();
+        const escuela = await RepresentanteModel.getEscuelaById(CCT)
         if (!escuela) {
-        return res.status(404).json({ error: 'CCT de escuela no válido' });
+            return res.status(404).json({ error: 'CCT de escuela no válido' });
         }
 
         //Validar que el correo no exista
@@ -184,9 +184,6 @@ app.post('/api/registroRepre', async (req, res) => {
         if(existingPhone){
             return res.status(409).json({ error: 'El número de teléfono ya está registrado'});
         }
-
-        // Hashear la contraseña
-        const hashedPassword = await bcrypt.hash(contrasena, 10);
 
         //Registrar al Representante
         await RepresentanteModel.createRepresentante({ nombre, correo_electronico, contrasena: hashedPassword, numero_telefonico, rol, anios_experiencia, proximo_a_jubilarse, cambio_zona, cct });
@@ -235,7 +232,6 @@ app.put('/api/actualizarRepre', async (req, res) => {
         if(!existingRepre){
             return res.status(404).json({ error: 'Representante no encontrado'});
         }
-
 
         //Actualizaremos nombre
         if(nuevoNombre){
@@ -300,8 +296,6 @@ app.post('/api/restablecerRepreContrasena', async (req, res) => {
             return res.status(404).json({ error: 'Correo no registrado'});
         }
 
-        const contrasenaOriginal = representante.contrasena;
-
         //Enviar un email para restablecer la contraseña
         return res.status(200).json({ message: 'Correo de recuperación enviado (revisa tu bandeja)'});
     }catch(error){
@@ -314,10 +308,10 @@ app.post('/api/restablecerRepreContrasena', async (req, res) => {
 //Endpoint de registro de escuela
 app.post('/api/registroEscuela', async (req, res) => { 
     try{
-        const {CCT, nombre, modalidad, nivel_educativo, sector_escolar, sostenimiento, zona_escolar, calle, colonia, municipio, numero, descripcion, control_administrativo, numero_estudiantes} = req.body;
+        const {CCT, nombre, modalidad, nivel_educativo, sector_escolar, sostenimiento, zona_escolar, calle, colonia, municipio, numero,  control_administrativo, numero_estudiantes} = req.body;
 
         //Validar que no sean campos vacíos
-        if(!CCT || !nombre || !modalidad || !nivel_educativo || !sector_escolar || !sostenimiento || !zona_escolar || !calle || !colonia || !municipio || !numero || !descripcion || !control_administrativo || !numero_estudiantes) {
+        if(!CCT || !nombre || !modalidad || !nivel_educativo || !sector_escolar || !sostenimiento || !zona_escolar || !calle || !colonia || !municipio || !numero || !control_administrativo || !numero_estudiantes) {
             return res.status(400).json({ error: 'Todos los campos son obligatorios' });
         }
 
@@ -498,7 +492,6 @@ app.post('/api/registroAliado', async (req, res) => {
         //Validar que el correo no exista
         const existingMail = await AliadoModel.getAliadoByMail(correo_electronico);
         if(existingMail){
-
             return res.status(400).json({ error: 'El correo ya está registrado'});
         }
 
@@ -513,7 +506,6 @@ app.post('/api/registroAliado', async (req, res) => {
 
         return res.status(200).json({ message: 'Aliado registrado exitosamente' });
     }catch(error){
-
         console.error('Error al registrar aliado:', error);
         return res.status(500).json({ error: 'Error interno del servidor' });
     }
@@ -550,7 +542,7 @@ app.post('/api/loginAliado', async (req, res) => {
 //Endpoint para ver el catálogo de aliados por institución (UTILIZAMOS QUERY-STRING)
 app.get('/api/aliado/:institucion', async (req, res) => {
     try{
-        const aliadoInstitucion = req.params.institucion.trim();
+        const aliadoInstitucion = req.params.institucion;
 
         //Validar que no sea un campo vacío
         if(!aliadoInstitucion){
@@ -574,7 +566,7 @@ app.get('/api/aliado/:institucion', async (req, res) => {
 //Endpoint para ver el catálogo de aliados por municipio (UTILIZAMOS QUERY-STRING)
 app.get('/api/aliado/:municipio', async (req, res) => {
     try{
-        const aliadoMunicipio = req.params.municipio.trim();
+        const aliadoMunicipio = req.params.municipio;
 
         //Validar que no sea un campo vacío
         if(!aliadoMunicipio){
@@ -598,7 +590,7 @@ app.get('/api/aliado/:municipio', async (req, res) => {
 //Endpoint para ver el catálogo de aliados por su correo (UTILIZAMOS QUERY-STRING)
 app.get('/api/aliado/:correo_electronico', async (req, res) => {
     try{
-        const aliadoMail = req.params.correo_electronico.trim();
+        const aliadoMail = req.params.correo_electronico;
 
         //Validar que no sea un campo vacío
         if(!aliadoMail){
@@ -622,7 +614,7 @@ app.get('/api/aliado/:correo_electronico', async (req, res) => {
 //Endpoint para ver el catálogo de aliados por su CURP (UTILIZAMOS QUERY-STRING)
 app.get('/api/aliado/:CURP', async (req, res) => {
     try{
-        const aliadoCURP = req.params.CURP.trim();
+        const aliadoCURP = req.params.CURP;
 
         //Validar que no sea un campo vacío
         if(!aliadoCURP){
@@ -724,7 +716,6 @@ app.post('/api/restablecerAliadoContrasena', async (req, res) => {
 
 //============ENPOINTS DE DIAGNOSTICO============//
 
-
 //============ENPOINTS DE ALIADO============//
 
 //============ENPOINTS DE APOYO============//
@@ -734,7 +725,6 @@ app.post('/api/restablecerAliadoContrasena', async (req, res) => {
 //============ENPOINTS DE ALIADO_BRINDA_APOYO============//
 
 //============ENPOINTS DE CRONOGRAMA============//
-
 
 //============ENPOINTS DE ACTIVIDAD============//
 

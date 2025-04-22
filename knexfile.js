@@ -5,7 +5,7 @@ module.exports = {
             host: 'localhost',
             database: 'mpj_db',
             user: 'postgres',
-            password: '230504',
+            password: 'pasSQL07',
         },
         migrations: {
             directory: './migrations',
