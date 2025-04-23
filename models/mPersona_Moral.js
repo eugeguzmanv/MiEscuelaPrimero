@@ -2,6 +2,14 @@
 const db = require('../db.js');
 
 const PersonaMoralModel = {
+  createPersonaMoral: (personaMoralData) => db('Persona_Moral').insert({
+        idAliado: personaMoralData.idAliado,
+        nombre_organizacion: personaMoralData.nombre_organizacion,
+        proposito: personaMoralData.proposito,
+        giro: personaMoralData.giro,
+        pagina_web: personaMoralData.pagina_web
+    }),
+
     // Obtener datos por idAliado
     getByAliadoId: (idAliado) =>
       db('Persona_Moral').where({ idAliado }).first(),
@@ -14,24 +22,6 @@ const PersonaMoralModel = {
         giro: datos.giro,
         pagina_web: datos.pagina_web
       }),
-  
-    // Actualizar Constancia Fiscal
-    updateConstanciaFiscal: (idPersonaMoral, datos) =>
-      db('Constancia_Fiscal').where({ idPersonaMoral }).update({
-        rfc: datos.rfc,
-        regimen: datos.regimen,
-        domicilio_fiscal: datos.domicilio_fiscal,
-        razon_social: datos.razon_social
-      }),
-  
-    // Actualizar Escritura Pública
-    updateEscrituraPublica: (idPersonaMoral, datos) =>
-      db('Escritura_Publica').where({ idPersonaMoral }).update({
-        numero: datos.numero,
-        notario: datos.notario,
-        ciudad: datos.ciudad,
-        fecha: datos.fecha
-      })
   };
   
   module.exports = PersonaMoralModel;

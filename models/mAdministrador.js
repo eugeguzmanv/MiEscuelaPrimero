@@ -14,7 +14,7 @@ const AdminModel = {
     //Apartado de actualización de datos
     updateAdminName: (idAdmin, nuevoNombre) => db('Administrador').where({ idAdmin }).update({ nombre: nuevoNombre }),
     updateAdminMail: (idAdmin, nuevoCorreo) => db('Administrador').where({ idAdmin }).update({ correo_electronico: nuevoCorreo }),
-    updateAdminPass: (idAdmin, hashedPassword) => db('Administrador').where({ idAdmin }).update({ contrasena: hashedPassword}), 
+    updateAdminPass: (idAdmin, nuevaContrasena) => db('Administrador').where({ idAdmin }).update({ contrasena: nuevaContrasena }), 
     
     //Apartado para obetener datos del administrador/es
     getAdminById: (idAdmin) => db('Administrador').where({ idAdmin }).first(), //Regresa UN solo objeto gracias al .first()

@@ -12,6 +12,10 @@ const RepresentanteModel = require('./models/mRepresentante.js');
 const EscuelaModel = require('./models/mEscuela.js');
 const AliadoModel = require('./models/mAliado.js');
 const PersonaMoralModel = require('./models/mPersona_Moral.js');
+const ConstanciaFiscalModel = require('./models/mConstancia_Fiscal.js');
+const EscrituraPublicaModel = require('./models/mEscritura_Publica.js');
+
+// Configuración de variables de entorno para mostrar los usuarios
 const knex = require('knex')({
     client: 'pg',
     connection: {
@@ -52,11 +56,9 @@ app.post('/api/admin/registro', async (req, res) => {
         if(existingAdmin){
             return res.status(409).json({ error: 'El correo ya está registrado'});
         }
-
-        // Hashear contraseña
-        const hashedPassword = await bcrypt.hash(contrasena, 10);
+    
         //Registrar el nuevo administrador en la base de datos
-        await AdminModel.createAdmin({ nombre, correo_electronico, contrasena: hashedPassword });
+        await AdminModel.createAdmin({ nombre, correo_electronico, contrasena});
 
         return res.status(201).json({ message: 'Administrador registrado exitosamente',
             data: {
@@ -105,7 +107,7 @@ app.post('/api/admin/login', async (req, res) => {
 //Endpoint para actualizar datos del administrador
 app.put('/api/admin/:idAdmin/perfil', async (req, res) => { 
     try{
-        const idAdmin = req.params.id;
+        const idAdmin = req.params.idAdmin;
         const {nuevoCorreo, nuevaContrasena, nuevoNombre} = req.body;
 
         //Validar que el admin existe
@@ -142,8 +144,7 @@ app.put('/api/admin/:idAdmin/perfil', async (req, res) => {
             await AdminModel.updateAdminMail(idAdmin, nuevoCorreo); // Actualiza "correo_electronico"
         }
         if (nuevaContrasena) {
-            const hashedPassword = await bcrypt.hash(nuevaContrasena, 10); // Hashear nueva contraseña
-            await AdminModel.updateAdminPass(idAdmin, hashedPassword); // Actualiza "contrasena"
+            await AdminModel.updateAdminPass(idAdmin, nuevaContrasena); // Actualiza "contrasena"
         }
 
         return res.status(200).json({ message: 'Administrador actualizado exitosamente' });
@@ -368,11 +369,8 @@ app.post('/api/registro/representante_escuela', async (req, res) => {
             return res.status(409).json({ error: 'El número de teléfono ya está registrado'});
         }
 
-        // Hashear la contraseña
-        const hashedPassword = await bcrypt.hash(contrasena, 10);
-
         //Registrar al Representante
-        await RepresentanteModel.createRepresentante({ nombre, correo_electronico, contrasena: hashedPassword, numero_telefonico, CCT, rol, anios_experiencia, proximo_a_jubilarse, cambio_zona });
+        await RepresentanteModel.createRepresentante({ nombre, correo_electronico, contrasena, numero_telefonico, CCT, rol, anios_experiencia, proximo_a_jubilarse, cambio_zona });
 
         return res.status(201).json({ message: 'Representante registrado exitosamente', 
             credenciales: {
@@ -404,9 +402,9 @@ app.post('/api/login/representante_escuela', async (req, res) => {
         }
 
         //Validar que la contraseña sea correcta
-        const passwordMatch = await bcrypt.compare(contrasena, existingMail.contrasena);
-        if (!passwordMatch) {
-            return res.status(401).json({ error: 'Contraseña incorrecta' });
+        
+        if(existingMail.contrasena !== contrasena){
+            return res.status(400).json({ error: 'La contraseña es incorrecta'});
         }
     
         return res.status(200).json({ message: 'Inicio de sesión exitoso'});
@@ -419,7 +417,8 @@ app.post('/api/login/representante_escuela', async (req, res) => {
 //Endpoint de actualizar datos del Representante
 app.put('/api/representantes/:idRepresentante', async (req, res) => {
     try{
-        const {idRepresentante, nuevoNombre, nuevoCorreo, nuevaContrasena, nuevoTelefono, nuevoRol, nuevoAnios, nuevoProximo, nuevoCambio} = req.body;
+        const idRepresentante = req.params.idRepresentante;
+        const {nuevoNombre, nuevoCorreo, nuevaContrasena, nuevoTelefono, nuevoRol, nuevoAnios, nuevoProximo, nuevoCambio} = req.body;
         //Validar que existe el representante
         const existingRepre = await RepresentanteModel.getRepresentanteById(idRepresentante);
         if(!existingRepre){
@@ -441,8 +440,7 @@ app.put('/api/representantes/:idRepresentante', async (req, res) => {
         }
 
         if (nuevaContrasena) {
-            const hashedPassword = await bcrypt.hash(nuevaContrasena, 10);
-            await RepresentanteModel.updateRepresentantePass(idRepresentante, hashedPassword);
+            await RepresentanteModel.updateRepresentantePass(idRepresentante, nuevaContrasena);
           }
 
         if(nuevoTelefono){
@@ -467,9 +465,10 @@ app.put('/api/representantes/:idRepresentante', async (req, res) => {
 
         return res.status(200).json({ message: 'Representante actualizado exitosamente',
             representante: {
-                id: parseInt(id),
+                id: parseInt(idRepresentante),
                 nombre: nuevoNombre,
                 correo: nuevoCorreo,
+                contrasena: nuevaContrasena,
                 telefono: nuevoTelefono,
                 años_servicio: nuevoAnios,
                 proximo_a_jubilarse: nuevoProximo,
@@ -709,7 +708,7 @@ app.get('/api/escuela/sector_escolar/:sector_escolar', async (req, res) => {
 app.get('/api/escuelas/', async (req, res) => {
     //Validar que al menos un filtro esté presente
     const { nombre, municipio, nivel_educativo, sector_escolar, zona_escolar } = req.query;
-    // Es parte de una configuración de conexión para conectarse a la base de datos de PostgreSQL
+    // Sirve para configurar la conexión para conectarse a la base de datos de Postgres
     const client = new Client({
         user: 'postgres',
         host: 'localhost',
@@ -818,12 +817,12 @@ app.put('/api/escuelas/:CCT/perfil', async (req, res) => {
           return res.status(409).json({ error: 'La clave no está registrada' });
         }
 
-        const cambios = [];
+        const cambios = []; // Array para guardar y mostrar los cambios en el JSON para probar su funcionamiento en POSTMAN
 
-
+    // Verifica si se ha proporcionado un nuevo nombre && verifica si el nuevo nombre es diferente al actual
     if (nuevoNombre && nuevoNombre !== escuelaActual.nombre) {
       await EscuelaModel.updateEscuelaName(CCT, nuevoNombre);
-      cambios.push('nombre');
+      cambios.push('nombre'); // Se añade el nuevo cambio de nombre al array
     }
 
     if (nuevaCalle && nuevaCalle !== escuelaActual.calle) {
@@ -831,26 +830,26 @@ app.put('/api/escuelas/:CCT/perfil', async (req, res) => {
       cambios.push('calle');
     }
 
-    if (nuevaColonia && colonia !== escuelaActual.colonia) {
-      await EscuelaModel.updateEscuelaColonia(CCT, colonia);
+    if (nuevaColonia && nuevaColonia !== escuelaActual.colonia) {
+      await EscuelaModel.updateEscuelaColonia(CCT, nuevaColonia);
       cambios.push('colonia');
     }
 
     if (nuevoMunicipio && nuevoMunicipio !== escuelaActual.municipio) {
-      await EscuelaModel.updateEscuelaMunicipio(CCT, municipio);
+      await EscuelaModel.updateEscuelaMunicipio(CCT, nuevoMunicipio);
       cambios.push('municipio');
     }
 
     if (nuevoNumero && nuevoNumero !== escuelaActual.numero) {
-      await db('Escuela').where({ CCT }).updateEscuelaNumero({ numero });
-      cambios.push('numero');
+        await EscuelaModel.updateEscuelaNumero(CCT, nuevoNumero);
+        cambios.push('numero');
     }
 
-    if (
-      typeof nuevoNumeroAlumnos === 'number' &&
+    if ( 
+      typeof nuevoNumeroAlumnos === 'number' && // Verifica que el tipo de que actualice sea un número
       nuevoNumeroAlumnos !== escuelaActual.numero_estudiantes
     ) {
-      await EscuelaModel.updateEscuelaNumero_estudiantes(CCT, numero_estudiantes);
+      await EscuelaModel.updateEscuelaNumero_estudiantes(CCT, nuevoNumeroAlumnos);
       cambios.push('numero_estudiantes');
     }
 
@@ -864,7 +863,7 @@ app.put('/api/escuelas/:CCT/perfil', async (req, res) => {
         cambios.push('modalidad');
       }
 
-    if (cambios.length === 0) {
+    if (cambios.length === 0) { // Verifica si el array está vacío
       return res.status(400).json({ error: 'Datos de actualización inválidos o sin cambios' });
     }
 
@@ -883,139 +882,44 @@ app.put('/api/escuelas/:CCT/perfil', async (req, res) => {
 //============ENPOINTS DE ALIADO============//
 //Endpoint de registro de aliado
 app.post('/api/aliados/registro', async (req, res) => {
-    const trx = await knex.transaction();
-    try {
-        const {
-            tipo,
-            nombre,
-            correo_electronico,
-            contraseña,
-            categoria_apoyo,
-            descripcion,
-            calle,
-            numero,
-            colonia,
-            municipio,
-            CURP,
-            institucion,
-            // Información de persona moral
-            nombre_organizacion,
-            proposito,
-            giro,
-            pagina_web,
-            constancia_fiscal,
-            escrituraPublica
-          } = req.body;
+    try{
+        const {tipo, correo_electronico, nombre, contraseña, categoria_apoyo, CURP, institucion, calle, colonia, municipio, numero, descripcion} = req.body;
 
-        // Validación de campos obligatorios
-        if (!tipo || !nombre || !correo_electronico || !contraseña || !categoria_apoyo || !descripcion ||
-            !CURP || !institucion || !calle || !colonia || !municipio || numero === undefined) {
-            await trx.rollback();
+        //Validar que no sean campos vacíos
+        if(!tipo || !correo_electronico || !nombre || !contraseña || !categoria_apoyo || !CURP || !institucion || !calle || !colonia || !municipio || !numero || !descripcion) {
             return res.status(400).json({ error: 'Todos los campos son obligatorios' });
         }
 
-        // Validación del tipo
-        if (tipo !== 'física' && tipo !== 'moral') {
-            await trx.rollback();
-            return res.status(400).json({ error: 'Tipo de aliado inválido' });
-        }
 
-        // Validar CURP única
-        const existingCURP = await trx('Aliado').where({ CURP }).first();
-        if (existingCURP) {
-            await trx.rollback();
-            return res.status(409).json({ error: 'La CURP ya está registrada' });
-        }
-
-        // Validar correo único
+        //Validar que el correo no exista
         const existingMail = await AliadoModel.getAliadoByMail(correo_electronico);
-        if (existingMail) {
-            await trx.rollback();
-            return res.status(409).json({ error: 'El correo ya está registrado' });
+        if(existingMail){
+            return res.status(409).json({ error: 'El correo ya está registrado'});
         }
 
-        // Hashear contraseña
-        const hashedPass = await bcrypt.hash(contraseña, 10);
-
-        // Insertar en Aliado
-        const [aliado] = await trx('Aliado').insert({
-            tipo,
-            nombre,
-            correo_electronico,
-            contraseña: hashedPass,
-            categoria_apoyo,
-            descripcion,
-            CURP,
-            institucion,
-            calle,
-            numero,
-            colonia,
-            municipio,
-            estado_validacion: 'pendiente'
-        }, ['idAliado']);
-
-        // Insertar los datos adicionales si es persona moral
-    if (tipo === 'moral') {
-        if (!nombre_organizacion || !proposito || !giro || !pagina_web ||
-            !constancia_fiscal || !escrituraPublica ||
-            !constancia_fiscal.RFC || !constancia_fiscal.regimen || !constancia_fiscal.domicilio || !constancia_fiscal.razon_social ||
-            !escrituraPublica.numero_escritura || !escrituraPublica.notario || !escrituraPublica.ciudad || !escrituraPublica.fecha_escritura) {
-            await trx.rollback();
-            return res.status(400).json({ error: 'Faltan datos requeridos para persona moral' });
+        //Validar que el CURP no exista
+        const existingCURP = await AliadoModel.getAliadoByCURP(CURP);
+        if(existingCURP){
+            return res.status(409).json({ error: 'El CURP ya está registrado'});
         }
-        // Insertar datos en la tabla Persona_Moral
-        const [personaMoral] = await trx('Persona_Moral').insert({
-          idAliado: aliado.idAliado,
-          nombre_organizacion,
-          proposito,
-          giro,
-          pagina_web
-        }, ['idPersonaMoral']);
-        
 
-        const idPersonaMoral = personaMoral.idPersonaMoral;
+        //Creamos el Aliado
+        await AliadoModel.createAliado({ tipo, correo_electronico, nombre, contraseña, categoria_apoyo, CURP, institucion, calle, colonia, municipio, numero, descripcion });
 
-        // Insertar datos en la tabla Constancia_Fiscal
-        await trx('Constancia_Fiscal').insert({
-          idPersonaMoral: idPersonaMoral,
-          RFC: constancia_fiscal.RFC,
-          regimen: constancia_fiscal.regimen,
-          domicilio: constancia_fiscal.domicilio,
-          razon_social: constancia_fiscal.razon_social
-        });
-   
-        // Insertar datos en la tabla Escritura_Publica
-        await trx('Escritura_Publica').insert({
-          idPersonaMoral: idPersonaMoral,
-          numero_escritura: escrituraPublica.numero_escritura,
-          notario: escrituraPublica.notario,
-          ciudad: escrituraPublica.ciudad,
-          fecha_escritura: escrituraPublica.fecha_escritura
-        });
-      }  
-
-        await trx.commit();
-        return res.status(201).json({
-            message: 'Aliado registrado exitosamente. Pendiente de validación',
-            nextStep: 'validacion_documentos',
-            idAliado: aliado.idAliado
-        });
-
-    } catch (error) {
-        await trx.rollback();
+        return res.status(200).json({ message: 'Aliado registrado exitosamente' });
+    }catch(error){
         console.error('Error al registrar aliado:', error);
         return res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 
-
 //Endpoint de inicio de sesión de aliado
 app.post('/api/login/aliados', async (req, res) => {
     try{
-        const {correo_electronico, contrasena} = req.body;
+        const {correo_electronico, contraseña} = req.body;
 
         //Validar que no sean campos vacíos
-        if(!correo_electronico || !contrasena) {
+        if(!correo_electronico || !contraseña) {
             return res.status(400).json({ error: 'Todos los campos son obligatorios' });
         }
 
@@ -1026,15 +930,14 @@ app.post('/api/login/aliados', async (req, res) => {
         }
 
         // Verificar estado de validación
-    if (aliado.estado_validacion !== 'validado') {
+    if (existingMail.estado_validacion !== 'validado') {
         return res.status(403).json({ error: 'Tu cuenta aún no ha sido validada' });
       }
 
         //Validar que la contraseña sea correcta
-        const contrasenaValida = await bcrypt.compare(contrasena, aliado.contrasena);
-    if (!contrasenaValida) {
-      return res.status(401).json({ error: 'Contraseña incorrecta' });
-    }
+        if(existingMail.contraseña !== contraseña){
+            return res.status(400).json({ error: 'La contraseña es incorrecta'});
+        }
 
         return res.status(200).json({ message: 'Inicio de sesión exitoso',
              rol: 'aliado'
@@ -1143,101 +1046,142 @@ app.get('/api/aliado/:CURP', async (req, res) => {
 
 //Endpoint para actualizar datos del aliado
 app.put('/api/aliados/:idAliado/perfil', async (req, res) => {
-    try{
+    const trx = await knex.transaction(); // Se hace una transacción para que el perfil sólo se pueda actualizar en una misma página del front
+    try {
         const {idAliado} = req.params;
         const {
-            nuevoNombre,
-            nuevoCorreo,
-            nuevaContrasena,
-            nuevaDescripcion,
-            nuevaInstitucion,
-            nuevaCurp,
-            nuevaDireccion,
-            // Datos de persona moral (si aplica)
-            nuevaOrganizacion,
-            nuevoProposito,
-            nuevoGiro,
-            nuevaWeb
-          } = req.body;
-        
-        //Validar que existe el representante
+            nuevoNombre, nuevoCorreo, nuevaContrasena, nuevaDescripcion, 
+            nuevaInstitucion, nuevaDireccion,
+            // Persona moral
+            nuevaOrganizacion, nuevoProposito, nuevoGiro, nuevaWeb,
+            // Constancia fiscal
+            nuevoRFC, nuevoRegimen, nuevoDomicilioFiscal, nuevoRazonSocial,
+            // Escritura pública
+            nuevoNumeroEscritura, nuevoNotario, nuevoCiudad, nuevoFechaEscritura
+        } = req.body;
+
+        // 1. Validar aliado existente
         const existingAliado = await AliadoModel.getAliadoById(idAliado);
-        if(!existingAliado){
-            return res.status(404).json({ error: 'Aliado no encontrado'});
+        if(!existingAliado) {
+            await trx.rollback(); // Si no existe el aliado, se revierte la transacción y no se hace ninguna actualización en otros campos
+            return res.status(404).json({ error: 'Aliado no encontrado' });
         }
 
         const cambios = [];
 
-        if(nuevoCorreo && nuevoCorreo !== existingAliado.correo_electronico){
-            const correoExiste = await AliadoModel.getAliadoByMail(nuevoCorreo);
-            if(correoExiste && correoExiste.idAliado !== existingAliado.idAliado){
-                return res.status(409).json({ error: 'El correo ya está registrado'});
-            }
-            await AliadoModel.updateAliadoMail(idAliado, nuevoCorreo); // Actualiza "correo_electronico"
-            cambios.push('correo_electronico');
-        }
-
-        //Actualizaremos nombre
-        if(nuevoNombre && nuevoNombre !== existingAliado.nombre){
-            await AliadoModel.updateAliadoName(idAliado, nuevoNombre) // Actualiza "nombre"
+        if(nuevoNombre && nuevoNombre !== existingAliado.nombre) {
+            await AliadoModel.updateNombre(idAliado, nuevoNombre).transacting(trx);
             cambios.push('nombre');
         }
 
-        if(nuevaContrasena){
-            const hashedPassword = await bcrypt.hash(nuevaContrasena, 10);
-            await AliadoModel.updateAliadoPass(idAliado, hashedPassword); // Actualiza "contrasena"
+        if(nuevoCorreo && nuevoCorreo !== existingAliado.correo_electronico) {
+            const correoExiste = await AliadoModel.getAliadoByMail(nuevoCorreo);
+            if(correoExiste && correoExiste.idAliado !== idAliado) {
+                await trx.rollback();
+                return res.status(409).json({ error: 'Correo ya registrado' });
+            }
+            await AliadoModel.updateCorreo(idAliado, nuevoCorreo).transacting(trx);
+            cambios.push('correo');
+        }
+
+        if(nuevoCorreo && nuevoCorreo !== existingAliado.correo_electronico) {
+            const correoExiste = await AliadoModel.getAliadoByMail(nuevoCorreo);
+            if(correoExiste && correoExiste.idAliado !== idAliado) {
+                await trx.rollback();
+                return res.status(409).json({ error: 'Correo ya registrado' });
+            }
+            await AliadoModel.updateCorreo(idAliado, nuevoCorreo).transacting(trx);
+            cambios.push('correo');
+        }
+
+        if(nuevaContrasena && nuevaContrasena !== existingAliado.contraseña) {
+            await AliadoModel.updateContrasena(idAliado, nuevaContrasena).transacting(trx);
             cambios.push('contrasena');
         }
 
-        if(nuevaDescripcion && nuevaDescripcion !== existingAliado.descripcion){
-            await AliadoModel.updateDescripcion(idAliado, nuevaDescripcion); // Actualiza "descripcion"
+        if(nuevaDescripcion && nuevaDescripcion !== existingAliado.descripcion) {
+            await AliadoModel.updateDescripcion(idAliado, nuevaDescripcion).transacting(trx);   
             cambios.push('descripcion');
         }
-
-        if(nuevaDireccion){
-            await AliadoModel.updateDireccion(idAliado, nuevaDireccion); // Actualiza "direccion"
+        if(nuevaInstitucion && nuevaInstitucion !== existingAliado.institucion) {
+            await AliadoModel.updateInstitucion(idAliado, nuevaInstitucion).transacting(trx);
+            cambios.push('institucion');
+        }
+        if(nuevaDireccion && nuevaDireccion !== existingAliado.direccion) {
+            await AliadoModel.updateDireccion(idAliado, nuevaDireccion).transacting(trx);
             cambios.push('direccion');
         }
 
-        // Persona física
-        if(existingAliado.tipo === 'física'){
-            if(nuevaInstitucion && nuevaInstitucion !== existingAliado.institucion){
-                await AliadoModel.updateInstitucion(idAliado, nuevaInstitucion); // Actualiza "institucion"
-                cambios.push('institucion');
+        if(existingAliado.tipo === 'moral') {
+            const personaMoral = await PersonaMoralModel.getByAliadoId(idAliado).transacting(trx);
+            if(!personaMoral) {
+                await trx.rollback();
+                return res.status(404).json({ error: 'Registro de persona moral no encontrado' });
             }
 
-            if(nuevaCurp && nuevaCurp !== existingAliado.curp){
-                const curpExiste = await AliadoModel.getAliadoByCURP(nuevaCurp);
-                if(curpExiste && curpExiste.idAliado !== existingAliado.idAliado){
-                    return res.status(400).json({ error: 'La CURP ya está registrada'});
+            // Actualizar datos de Persona Moral
+            if(nuevaOrganizacion || nuevoProposito || nuevoGiro || nuevaWeb) {
+                await PersonaMoralModel.updateDatosGenerales(
+                    personaMoral.idPersonaMoral, 
+                    {
+                        nombre_organizacion: nuevaOrganizacion || personaMoral.nombre_organizacion,
+                        proposito: nuevoProposito || personaMoral.proposito,
+                        giro: nuevoGiro || personaMoral.giro,
+                        pagina_web: nuevaWeb || personaMoral.pagina_web
+                    }
+                ).transacting(trx);
+                cambios.push('datos_organizacion');
+            }
+
+            // Actualizar Constancia Fiscal
+            if(nuevoRFC || nuevoRegimen || nuevoDomicilioFiscal || nuevoRazonSocial) {
+                const constancia = await ConstanciaFiscalModel.getByPersonaMoralId(personaMoral.idPersonaMoral).transacting(trx);
+                if(constancia) {
+                    await ConstanciaFiscalModel.updateDatosGenerales(
+                        personaMoral.idPersonaMoral, // Cambiado para usar idPersonaMoral como filtro
+                        {
+                            RFC: nuevoRFC || constancia.RFC,
+                            regimen: nuevoRegimen || constancia.regimen,
+                            domicilio_fiscal: nuevoDomicilioFiscal || constancia.domicilio,
+                            razon_social: nuevoRazonSocial || constancia.razon_social
+                        }
+                    ).transacting(trx);
+                    cambios.push('constancia_fiscal');
                 }
-                await AliadoModel.updateAliadoCURP(idAliado, nuevaCurp); // Actualiza "curp"
-                cambios.push('curp');
+            }
+
+            // Actualizar Escritura Pública
+            if(nuevoNumeroEscritura || nuevoNotario || nuevoCiudad || nuevoFechaEscritura) {
+                const escritura = await EscrituraPublicaModel.getByPersonaMoralId(personaMoral.idPersonaMoral).transacting(trx);
+                if(escritura) {
+                    await EscrituraPublicaModel.updateDatosGenerales(
+                        personaMoral.idPersonaMoral, // Cambiado para usar idPersonaMoral como filtro
+                        {
+                            numero_escritura: nuevoNumeroEscritura || escritura.numero_escritura,
+                            notario: nuevoNotario || escritura.notario,
+                            ciudad: nuevoCiudad || escritura.ciudad,
+                            fecha_escritura: nuevoFechaEscritura || escritura.fecha_escritura
+                        }
+                    ).transacting(trx);
+                    cambios.push('escritura_publica');
+                }
             }
         }
 
-        // Persona moral
-    if (existingAliado.tipo === 'moral') {
-
-        const personaMoral = await PersonaMoralModel.getByAliadoId(idAliado);
-      if (!personaMoral) {
-        return res.status(404).json({ error: 'Registro de Persona Moral no encontrado' });
-      }
-        const idPersonaMoral = personaMoral.idPersonaMoral;
-        if (nuevaOrganizacion || nuevoProposito || nuevoGiro || nuevaWeb) {
-          await PersonaMoralModel.updatePersonaMoral(idPersonaMoral, {
-            nombre_organizacion: nuevaOrganizacion,
-            proposito: nuevoProposito,
-            giro: nuevoGiro,
-            pagina_web: nuevaWeb
-          });
-          cambios.push('persona_moral');
+        if(cambios.length === 0) {
+            await trx.rollback();
+            return res.status(400).json({ error: 'No se realizaron cambios' });
         }
-    }
 
-        return res.status(200).json({ message: 'Perfil actualizado exitosamente' });
-    }catch(error){
-        console.error('Error al actualizar representante:', error);
+        await trx.commit(); // Confirmar la transacción si todo fue exitoso
+        return res.status(200).json({ 
+            message: 'Perfil actualizado exitosamente',
+            cambios
+        });
+
+    } catch(error) {
+        await trx.rollback(); // Revertir la transacción en caso de error y no se hace ninguna actualización
+        console.error('Error al actualizar aliado:', error);
         return res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -1417,9 +1361,78 @@ WHERE 1=1
 
 //============ENPOINTS DE PERSONA_MORAL============//
 
+//Endpoint para registrar la persona moral
+app.post('/api/aliado/:idAliado/registro/PersonaMoral', async (req, res) => {
+    try{
+        const {idAliado} = req.params;
+        const {nombre_organizacion, proposito, giro, pagina_web} = req.body;
+
+        //Validar que no sean campos vacíos
+        if(!nombre_organizacion || !proposito || !giro || !pagina_web) {
+            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+        }
+         // Validar que el idAliado exista en la base de datos
+         const existingAliado = await AliadoModel.getAliadoById(idAliado);
+         if (!existingAliado) {
+             return res.status(404).json({ error: 'El aliado no existe' });
+         }
+
+        //Registrar la nueva persona moral en la base de datos
+        await PersonaMoralModel.createPersonaMoral({ idAliado, nombre_organizacion, proposito, giro, pagina_web });
+
+        return res.status(201).json({ message: 'Persona moral registrada exitosamente' });
+    }catch(error){
+        console.error('Error al registrar persona moral:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+
+});
+
 //============ENPOINTS DE ESCRITURA_PUBLICA============//
+app.post('/api/PersonaMoral/:idPersonaMoral/registro/EscrituraPublica', async (req, res) => {
+    try{
+        const {idPersonaMoral} = req.params;
+        const {numero_escritura, notario, ciudad, fecha_escritura} = req.body;
+
+        //Validar que no sean campos vacíos
+        if(!numero_escritura || !notario || !ciudad || !fecha_escritura) {
+            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+        }
+        const existingEscritura = await EscrituraPublicaModel.getEscrituraPublicaByNumero(numero_escritura);
+        if(existingEscritura){
+            return res.status(409).json({ error: 'La escritura pública ya está registrada'});
+        }
+
+        //Registrar la nueva escritura pública en la base de datos
+        await EscrituraPublicaModel.createEscrituraPublica({ idPersonaMoral, numero_escritura, notario, ciudad, fecha_escritura });
+
+        return res.status(201).json({ message: 'Escritura pública registrada exitosamente' });
+    }catch(error){
+        console.error('Error al registrar escritura pública:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
 
 //============ENPOINTS DE CONSTANCIA_FISCAL============//
+app.post('/api/PersonaMoral/:idPersonaMoral/registro/ConstanciaFiscal', async (req, res) => {
+    try{
+        const {idPersonaMoral} = req.params;
+        const {RFC, regimen, domicilio, razon_social} = req.body;
+        
+        //Validar que no sean campos vacíos
+        if(!RFC || !regimen || !domicilio || !razon_social) {
+            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+        }
+
+        //Registrar la nueva constancia fiscal en la base de datos
+        await ConstanciaFiscalModel.createConstanciaFiscal({ idPersonaMoral, RFC, regimen, domicilio, razon_social });
+
+        return res.status(201).json({ message: 'Constancia fiscal registrada exitosamente' });
+    }catch(error){
+        console.error('Error al registrar constancia fiscal:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
 
 //============NECESIDAD============//
 

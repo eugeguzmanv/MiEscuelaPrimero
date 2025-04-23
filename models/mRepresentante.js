@@ -22,7 +22,7 @@ const RepresentanteModel = {
     //Apartado de actualización de datos
     updateRepresentanteName: (idRepresentante, nuevoNombre) => db('Representante').where({ idRepresentante }).update({ nombre: nuevoNombre }),
     updateRepresentanteMail: (idRepresentante, nuevoCorreo) => db('Representante').where({ idRepresentante }).update({ correo_electronico: nuevoCorreo }),
-    updateRepresentantePass: (idRepresentante, hashedPassword) => db('Representante').where({ idRepresentante }).update({ contrasena: hashedPassword }),
+    updateRepresentantePass: (idRepresentante, nuevaContrasena) => db('Representante').where({ idRepresentante }).update({ contrasena: nuevaContrasena }),
     updateRepresentantePhone: (idRepresentante, nuevoTelefono) => db('Representante').where({ idRepresentante }).update({ numero_telefonico: nuevoTelefono }),
     updateRepresentanteRol: (idRepresentante, nuevoRol) => db('Representante').where({ idRepresentante }).update({ rol: nuevoRol }),
     updateRepresentanteanios_experiencia: (idRepresentante, nuevoAnios) => db('Representante').where({ idRepresentante }).update({ anios_experiencia: nuevoAnios }),

@@ -5,9 +5,11 @@ const AliadoModel = {
     //Apartado de registro de Aliado
     //Este apartado es para crear un nuevo aliado, se le asigna un idAliado automaticamente
     createAliado: (aliadoData) => db('Aliado').insert({
+        tipo: aliadoData.tipo,
         correo_electronico: aliadoData.correo_electronico,
         nombre: aliadoData.nombre,
-        contrasena: aliadoData.contrasena,
+        contraseña: aliadoData.contraseña,
+        categoria_apoyo: aliadoData.categoria_apoyo,
         CURP: aliadoData.CURP,
         institucion: aliadoData.institucion,
         calle: aliadoData.calle,
@@ -17,20 +19,19 @@ const AliadoModel = {
         descripcion: aliadoData.descripcion
     }), 
 
-
     //Apartado de actualización de datos
     //ACTUALIZACIONES GENERALES
   updateNombre: (idAliado, nuevoNombre) =>
     db('Aliado').where({ idAliado }).update({ nombre: nuevoNombre }),
 
   updateCorreo: (idAliado, nuevoCorreo) =>
-    db('Aliado').where({ idAliado }).update({ correo: nuevoCorreo }),
+    db('Aliado').where({ idAliado }).update({ correo_electronico: nuevoCorreo }),
 
   updateDescripcion: (idAliado, nuevaDescripcion) =>
     db('Aliado').where({ idAliado }).update({ descripcion: nuevaDescripcion }),
 
-  updateContrasena: (idAliado, hashedPassword) =>
-    db('Aliado').where({ idAliado }).update({ contrasena: hashedPassword }),
+  updateContrasena: (idAliado, nuevaContrasena) =>
+    db('Aliado').where({ idAliado }).update({ contraseña: nuevaContrasena }),
 
   updateDireccion: (idAliado, direccion) =>
     db('Aliado').where({ idAliado }).update({
@@ -40,7 +41,6 @@ const AliadoModel = {
       municipio: direccion.municipio
     }),
 
-  //DATOS PERSONA FÍSICA
   updateInstitucion: (idAliado, institucion) =>
     db('Aliado').where({ idAliado }).update({ institucion }),
 
