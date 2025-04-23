@@ -793,6 +793,8 @@ app.post('/api/restablecerAliadoContrasena', async (req, res) => {
 });
 
 
+//============ENPOINTS DE FIRMA DE DOCUMENTOS============//
+
 //============ENPOINTS DE NECESIDAD============//
 
 //============ENPOINTS DE DIAGNOSTICO============//
