@@ -2,13 +2,13 @@
 const db = require('../db.js');
 
 const PersonaMoralModel = {
-  createPersonaMoral: (personaMoralData) => db('Persona_Moral').insert({
+  createPersonaMoral: (personaMoralData, trx = db) => trx('Persona_Moral').insert({
         idAliado: personaMoralData.idAliado,
         nombre_organizacion: personaMoralData.nombre_organizacion,
         proposito: personaMoralData.proposito,
         giro: personaMoralData.giro,
         pagina_web: personaMoralData.pagina_web
-    }),
+    }, ['idPersonaMoral']), // Regresa el idPersonaMoral generado para poder usarlo en el index
 
     // Obtener datos por idAliado
     getByAliadoId: (idAliado) =>

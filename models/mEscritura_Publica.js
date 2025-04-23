@@ -2,19 +2,22 @@
 const db = require('../db.js');
 
 const EscrituraPublicaModel = {
-    createEscrituraPublica: (escrituraPublicaData) => db('Escritura_Publica').insert({
+    createEscrituraPublica: (escrituraPublicaData, trx = db) => trx('Escritura_Publica').insert({
             idPersonaMoral: escrituraPublicaData.idPersonaMoral,
             numero_escritura: escrituraPublicaData.numero_escritura,
             notario: escrituraPublicaData.notario,
             ciudad: escrituraPublicaData.ciudad,
             fecha_escritura: escrituraPublicaData.fecha_escritura
-        }), 
+        }, ['numero_escritura']),
     // Obtener datos por idAliado
     getByAliadoId: (idAliado) =>
       db('Escritura_Publica').where({ idAliado }).first(),
-    
+
      getByPersonaMoralId: (idPersonaMoral) =>
       db('Escritura_Publica').where({ idPersonaMoral }).first(),
+
+     getEscrituraPublicaByNumero: (numero_escritura) =>
+      db('Escritura_Publica').where({ numero_escritura }).first(),
     // Actualizar datos generales de Escritura Pública
     updateDatosGenerales: (idPersonaMoral, datos) =>
       db('Escritura_Publica').where({ idPersonaMoral }).update({

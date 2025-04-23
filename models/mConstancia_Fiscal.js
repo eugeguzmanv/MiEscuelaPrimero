@@ -2,13 +2,13 @@
 const db = require('../db.js');
 
 const ConstanciaFiscalModel = {
-    createConstanciaFiscal: (constanciaFiscalData) => db('Constancia_Fiscal').insert({
+    createConstanciaFiscal: (constanciaFiscalData, trx = db) => trx('Constancia_Fiscal').insert({
             idPersonaMoral: constanciaFiscalData.idPersonaMoral,
             RFC: constanciaFiscalData.RFC,
             regimen: constanciaFiscalData.regimen,
             domicilio: constanciaFiscalData.domicilio,
             razon_social: constanciaFiscalData.razon_social
-        }),
+        }, ['idConstanciaFiscal']), // Regresa el idConstanciaFiscal generado para usarlo en el index
     // Obtener datos por idAliado
     getByAliadoId: (idAliado) =>
       db('Constancia_Fiscal').where({ idAliado }).first(),

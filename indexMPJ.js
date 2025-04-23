@@ -906,7 +906,7 @@ app.post('/api/aliados/registro', async (req, res) => {
         //Creamos el Aliado
         await AliadoModel.createAliado({ tipo, correo_electronico, nombre, contraseña, categoria_apoyo, CURP, institucion, calle, colonia, municipio, numero, descripcion });
 
-        return res.status(200).json({ message: 'Aliado registrado exitosamente' });
+        return res.status(200).json({ message: 'Aliado registrado exitosamente. Pendiente de validación', nextStep: 'validar'});
     }catch(error){
         console.error('Error al registrar aliado:', error);
         return res.status(500).json({ error: 'Error interno del servidor' });
@@ -1060,7 +1060,7 @@ app.put('/api/aliados/:idAliado/perfil', async (req, res) => {
             nuevoNumeroEscritura, nuevoNotario, nuevoCiudad, nuevoFechaEscritura
         } = req.body;
 
-        // 1. Validar aliado existente
+        // Validar aliado existente
         const existingAliado = await AliadoModel.getAliadoById(idAliado);
         if(!existingAliado) {
             await trx.rollback(); // Si no existe el aliado, se revierte la transacción y no se hace ninguna actualización en otros campos
@@ -1332,6 +1332,8 @@ WHERE 1=1
 
 
 //============ENPOINTS DE NECESIDAD============//
+// Endpoint para registrar necesidad en el diagnóstico
+
 
 //============ENPOINTS DE DIAGNOSTICO============//
 
@@ -1361,76 +1363,116 @@ WHERE 1=1
 
 //============ENPOINTS DE PERSONA_MORAL============//
 
-//Endpoint para registrar la persona moral
-app.post('/api/aliado/:idAliado/registro/PersonaMoral', async (req, res) => {
-    try{
+//Endpoint para registrar todos los datos de persona moral, constancia fiscal y escritura pública, ya que el registro se está haciendo en una sola página del frontend
+app.post('/api/aliado/:idAliado/registro-completo', async (req, res) => {
+    const trx = await knex.transaction(); // Iniciar transacción
+    
+    try {
         const {idAliado} = req.params;
-        const {nombre_organizacion, proposito, giro, pagina_web} = req.body;
+        const {
+            // Datos de Persona Moral
+            nombre_organizacion, 
+            proposito, 
+            giro, 
+            pagina_web,
+            // Datos de Escritura Pública
+            numero_escritura, 
+            notario, 
+            ciudad, 
+            fecha_escritura,
+            // Datos de Constancia Fiscal
+            RFC, 
+            regimen, 
+            domicilio, 
+            razon_social
+        } = req.body;
 
-        //Validar que no sean campos vacíos
+        // Validaciones iniciales
         if(!nombre_organizacion || !proposito || !giro || !pagina_web) {
+            await trx.rollback(); // Si falta algún campo de registrar, revertir la transacción y no se registra ningún dato
             return res.status(400).json({ error: 'Todos los campos son obligatorios' });
         }
-         // Validar que el idAliado exista en la base de datos
-         const existingAliado = await AliadoModel.getAliadoById(idAliado);
-         if (!existingAliado) {
-             return res.status(404).json({ error: 'El aliado no existe' });
-         }
 
-        //Registrar la nueva persona moral en la base de datos
-        await PersonaMoralModel.createPersonaMoral({ idAliado, nombre_organizacion, proposito, giro, pagina_web });
-
-        return res.status(201).json({ message: 'Persona moral registrada exitosamente' });
-    }catch(error){
-        console.error('Error al registrar persona moral:', error);
-        return res.status(500).json({ error: 'Error interno del servidor' });
-    }
-
-});
-
-//============ENPOINTS DE ESCRITURA_PUBLICA============//
-app.post('/api/PersonaMoral/:idPersonaMoral/registro/EscrituraPublica', async (req, res) => {
-    try{
-        const {idPersonaMoral} = req.params;
-        const {numero_escritura, notario, ciudad, fecha_escritura} = req.body;
-
-        //Validar que no sean campos vacíos
         if(!numero_escritura || !notario || !ciudad || !fecha_escritura) {
-            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+            await trx.rollback();
+            return res.status(400).json({ error: 'Todos los campos de Escritura Pública son obligatorios' });
         }
-        const existingEscritura = await EscrituraPublicaModel.getEscrituraPublicaByNumero(numero_escritura);
+
+        if(!RFC || !regimen || !domicilio || !razon_social) {
+            await trx.rollback();
+            return res.status(400).json({ error: 'Todos los campos de Constancia Fiscal son obligatorios' });
+        }
+
+        // Validar que el aliado existe
+        const existingAliado = await AliadoModel.getAliadoById(idAliado).transacting(trx);
+        if (!existingAliado) {
+            await trx.rollback();
+            return res.status(404).json({ error: 'El aliado no existe' });
+        }
+
+        // Validar que no sea persona física
+        if(existingAliado.tipo !== 'moral') {
+            await trx.rollback();
+            return res.status(400).json({ error: 'Solo aliados tipo moral pueden registrar esta información' });
+        }
+
+        //Registrar Persona Moral
+        const personaMoral = await PersonaMoralModel.createPersonaMoral({ idAliado, nombre_organizacion, proposito, giro, pagina_web 
+        }).transacting(trx);
+
+        const idPersonaMoral = personaMoral[0].idPersonaMoral; //Acceder al primer elemento del arreglo devuelto por la consulta
+
+        // Registrar Escritura Pública
+        const existingEscritura = await EscrituraPublicaModel.getEscrituraPublicaByNumero(numero_escritura).transacting(trx);
         if(existingEscritura){
+            await trx.rollback();
             return res.status(409).json({ error: 'La escritura pública ya está registrada'});
         }
 
-        //Registrar la nueva escritura pública en la base de datos
-        await EscrituraPublicaModel.createEscrituraPublica({ idPersonaMoral, numero_escritura, notario, ciudad, fecha_escritura });
+        await EscrituraPublicaModel.createEscrituraPublica({ 
+            idPersonaMoral, 
+            numero_escritura, 
+            notario, 
+            ciudad, 
+            fecha_escritura 
+        }).transacting(trx);
 
-        return res.status(201).json({ message: 'Escritura pública registrada exitosamente' });
-    }catch(error){
-        console.error('Error al registrar escritura pública:', error);
-        return res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
+        //Registrar Constancia Fiscal
+        await ConstanciaFiscalModel.createConstanciaFiscal({ 
+            idPersonaMoral, 
+            RFC, 
+            regimen, 
+            domicilio, 
+            razon_social 
+        }).transacting(trx);
 
-//============ENPOINTS DE CONSTANCIA_FISCAL============//
-app.post('/api/PersonaMoral/:idPersonaMoral/registro/ConstanciaFiscal', async (req, res) => {
-    try{
-        const {idPersonaMoral} = req.params;
-        const {RFC, regimen, domicilio, razon_social} = req.body;
-        
-        //Validar que no sean campos vacíos
-        if(!RFC || !regimen || !domicilio || !razon_social) {
-            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
-        }
+        // Si todo sale bien, confirmar la transacción
+        await trx.commit();
 
-        //Registrar la nueva constancia fiscal en la base de datos
-        await ConstanciaFiscalModel.createConstanciaFiscal({ idPersonaMoral, RFC, regimen, domicilio, razon_social });
+        return res.status(201).json({ 
+            message: 'Aliado registrado exitosamente. Pendiente de validación',
+            datos: {
+                nombre_organizacion,
+                RFC,
+                numero_escritura,
+                regimen,
+                domicilio,
+                razon_social,
+                giro,
+                pagina_web,
+                proposito,
+                ciudad,
+                fecha_escritura,
+                notario
+            }
+        });
 
-        return res.status(201).json({ message: 'Constancia fiscal registrada exitosamente' });
-    }catch(error){
-        console.error('Error al registrar constancia fiscal:', error);
-        return res.status(500).json({ error: 'Error interno del servidor' });
+    } catch(error) {
+        await trx.rollback();
+        console.error('Error en registro completo:', error);
+        return res.status(500).json({ 
+            error: 'Error interno del servidor',
+        });
     }
 });
 
