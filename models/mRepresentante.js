@@ -16,6 +16,7 @@ const RepresentanteModel = {
         anios_experiencia: repreData.anios_experiencia,
         proximo_a_jubilarse: repreData.proximo_a_jubilarse || false, //se agrega el false para que no sea obligatorio
         cambio_zona: repreData.cambio_zona || false, //se agrega el false para que no sea obligatorio
+        CCT: repreData.CCT,
     }),
     
     //Apartado de actualización de datos

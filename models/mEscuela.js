@@ -19,6 +19,7 @@ const EscuelaModel = {
         numero: escuelData.numero,
         control_administrativo: escuelData.control_administrativo,
         numero_estudiantes: escuelData.numero_estudiantes,
+        descripcion: escuelData.descripcion,
     }),
     
     //Apartado de actualización de datos

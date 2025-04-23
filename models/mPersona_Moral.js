@@ -2,36 +2,26 @@
 const db = require('../db.js');
 
 const PersonaMoralModel = {
-    // Obtener datos por idAliado
-    getByAliadoId: (idAliado) =>
-      db('Persona_Moral').where({ idAliado }).first(),
-  
-    // Actualizar datos generales de Persona Moral
-    updateDatosGenerales: (idPersonaMoral, datos) =>
-      db('Persona_Moral').where({ idPersonaMoral }).update({
-        nombre_organizacion: datos.nombre_organizacion,
-        proposito: datos.proposito,
-        giro: datos.giro,
-        pagina_web: datos.pagina_web
-      }),
-  
-    // Actualizar Constancia Fiscal
-    updateConstanciaFiscal: (idPersonaMoral, datos) =>
-      db('Constancia_Fiscal').where({ idPersonaMoral }).update({
-        rfc: datos.rfc,
-        regimen: datos.regimen,
-        domicilio_fiscal: datos.domicilio_fiscal,
-        razon_social: datos.razon_social
-      }),
-  
-    // Actualizar Escritura Pública
-    updateEscrituraPublica: (idPersonaMoral, datos) =>
-      db('Escritura_Publica').where({ idPersonaMoral }).update({
-        numero: datos.numero,
-        notario: datos.notario,
-        ciudad: datos.ciudad,
-        fecha: datos.fecha
-      })
-  };
-  
-  module.exports = PersonaMoralModel;
+  //Crear a la persona moral
+  createPersonaMoral: (personaMoralData) => db('Persona_Moral').insert({
+    giro: personaMoralData.giro,
+    proposito: personaMoralData.proposito,
+    nombre_organizacion: personaMoralData.nombre_organizacion,
+    pagina_web: personaMoralData.pagina_web,
+    idAliado: personaMoralData.idAliado, //idAliado del aliado que brinda el apoyo
+  }),
+
+  //Apartado de actualización de datos
+  updatePersonaMoralGiro: (idPersonaMoral, nuevoGiro) => db('Persona_Moral').where({ idPersonaMoral }).update({ giro: nuevoGiro }),
+  updatePersonaMoralProposito: (idPersonaMoral, nuevoProposito) => db('Persona_Moral').where({ idPersonaMoral }).update({ proposito: nuevoProposito }),
+  updatePersonaMoralNombre_organizacion: (idPersonaMoral, nuevoNombreOrganizacion) => db('Persona_Moral').where({ idPersonaMoral }).update({ nombre_organizacion: nuevoNombreOrganizacion }),
+  updatePersonaMoralPagina_web: (idPersonaMoral, nuevaPaginaWeb) => db('Persona_Moral').where({ idPersonaMoral }).update({ pagina_web: nuevaPaginaWeb }),
+
+  //Obtener datos de las personas morales
+  getPersonaMoralById: (idPersonaMoral) => db('Persona_Moral').where({ idPersonaMoral }).first(), //Regresa UN solo objeto gracias al .first()
+  getPersonaMoralByGiro: (giro) => db('Persona_Moral').where({ giro }).select('*'), //Regresa todos los objetos que tengan el mismo giro
+  getPersonaMoralByNombre_organizacion: (nombre_organizacion) => db('Persona_Moral').where({ nombre_organizacion }).select('*'), //Regresa todos los objetos que tengan el mismo nombre de organizacion
+  getPersonaMoralByPagina_web: (pagina_web) => db('Persona_Moral').where({ pagina_web }).select('*'), //Regresa todos los objetos que tengan la misma pagina web
+};
+
+module.exports = PersonaMoralModel;

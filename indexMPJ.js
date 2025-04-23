@@ -10,6 +10,8 @@ const AdminModel = require('./models/mAdministrador.js');
 const RepresentanteModel = require('./models/mRepresentante.js');
 const EscuelaModel = require('./models/mEscuela.js');
 const AliadoModel = require('./models/mAliado.js');
+const PersonaMoralModel = require('./models/mPersona_Moral.js');
+const EscrituraPublicaModel = require('./models/mEscritura_Publica.js');
 
 app.use(express.static('public')); //Para poder servir archivos estáticos como HTML, CSS, JS, etc.
 app.use(express.json()); //Para poder recibir datos en formato JSON en el body de las peticiones
@@ -179,7 +181,7 @@ app.post('/api/registroRepre', async (req, res) => {
         }
 
         // Verificar que la escuela exista
-        const escuela = await RepresentanteModel.getRepresentanteById(CCT);
+        const escuela = await EscuelaModel.getEscuelaById(CCT);
         if (!escuela) {
             return res.status(404).json({ error: 'CCT de escuela no válido' });
         }
@@ -274,14 +276,14 @@ app.put('/api/actualizarRepre', async (req, res) => {
         }
 
         if(nuevoAnios){
-            await RepresentanteModel.updateRepresentanteAnios(idRepresentante, nuevoAnios); // Actualiza "anios_experiencia"
+            await RepresentanteModel.updateRepresentanteanios_experiencia(idRepresentante, nuevoAnios); // Actualiza "anios_experiencia"
         }
         if(nuevoProximo !== undefined){
-            await RepresentanteModel.updateRepresentanteProximo(idRepresentante, nuevoProximo); // Actualiza "proximo_a_jubilarse"
+            await RepresentanteModel.updateRepresentanteproximo_a_jubilarse(idRepresentante, nuevoProximo); // Actualiza "proximo_a_jubilarse"
         }
 
         if(nuevoCambio){
-            await RepresentanteModel.updateRepresentanteCambio(idRepresentante, nuevoCambio); // Actualiza "cambio_zona"
+            await RepresentanteModel.updateRepresentanteCambio_zona(idRepresentante, nuevoCambio); // Actualiza "cambio_zona"
         }
 
         return res.status(200).json({ message: 'Representante actualizado exitosamente' });
@@ -322,7 +324,7 @@ app.post('/api/registroEscuela', async (req, res) => {
         const {CCT, nombre, modalidad, nivel_educativo, sector_escolar, sostenimiento, zona_escolar, calle, colonia, municipio, numero, descripcion,  control_administrativo, numero_estudiantes} = req.body;
 
         //Validar que no sean campos vacíos
-        if(!CCT || !nombre || !modalidad || !nivel_educativo || !sector_escolar || !sostenimiento || !zona_escolar || !calle || !colonia || !municipio || !numero || !control_administrativo || !numero_estudiantes) {
+        if(!CCT || !nombre || !modalidad || !nivel_educativo || !sector_escolar || !sostenimiento || !zona_escolar || !calle || !colonia || !municipio || !numero || !descripcion || !control_administrativo || !numero_estudiantes) {
             return res.status(400).json({ error: 'Todos los campos son obligatorios' });
         }
 
@@ -551,7 +553,7 @@ app.post('/api/loginAliado', async (req, res) => {
 });
 
 //Endpoint para ver el catálogo de aliados por institución (UTILIZAMOS QUERY-STRING)
-app.get('/api/aliado/:institucion', async (req, res) => {
+app.get('/api/aliadoInst/:institucion', async (req, res) => {
     try{
         const aliadoInstitucion = req.params.institucion.trim(); // Eliminar espacios en blanco al inicio y al final
 
@@ -575,9 +577,9 @@ app.get('/api/aliado/:institucion', async (req, res) => {
 });
 
 //Endpoint para ver el catálogo de aliados por municipio (UTILIZAMOS QUERY-STRING)
-app.get('/api/aliado/:municipio', async (req, res) => {
+app.get('/api/aliadoMun/:municipio', async (req, res) => {
     try{
-        const aliadoMunicipio = req.params.municipio;
+        const aliadoMunicipio = req.params.municipio.trim(); // Eliminar espacios en blanco al inicio y al final
 
         //Validar que no sea un campo vacío
         if(!aliadoMunicipio){
@@ -595,11 +597,11 @@ app.get('/api/aliado/:municipio', async (req, res) => {
     }catch(error){
         console.error('Error al obtener aliado:', error);
         return res.status(500).json({ error: 'Error interno del servidor' });
-    }
+    } 
 });
 
 //Endpoint para ver el catálogo de aliados por su correo (UTILIZAMOS QUERY-STRING)
-app.get('/api/aliado/:correo_electronico', async (req, res) => {
+app.get('/api/aliadoCor/:correo_electronico', async (req, res) => {
     try{
         const aliadoMail = req.params.correo_electronico;
 
@@ -623,7 +625,7 @@ app.get('/api/aliado/:correo_electronico', async (req, res) => {
 });
 
 //Endpoint para ver el catálogo de aliados por su CURP (UTILIZAMOS QUERY-STRING)
-app.get('/api/aliado/:CURP', async (req, res) => {
+app.get('/api/aliadoCURP/:CURP', async (req, res) => {
     try{
         const aliadoCURP = req.params.CURP;
 
@@ -649,22 +651,17 @@ app.get('/api/aliado/:CURP', async (req, res) => {
 //Endpoint para actualizar datos del aliado
 app.put('/api/actualizarAliado', async (req, res) => {
     try{
-        const {idAliado, nuevoNombre, nuevoCorreo, nuevaContrasena, nuevoMunicipio, nuevoSector, nuevaInstitucion} = req.body;
+        const {idAliado, nuevoNombre, nuevoCorreo, nuevoNumero, nuevaDescripcion, nuevaContrasena, nuevoMunicipio, nuevoSector, nuevaInstitucion, nuevaCalle, nuevoCURP, nuevaColonia} = req.body;
         //Validar que existe el representante
         const existingAliado = await AliadoModel.getAliadoById(idAliado);
         if(!existingAliado){
-            return res.status(400).json({ error: 'El representante no existe'});
+            return res.status(400).json({ error: 'El aliado no existe'});
         }
 
         //Validar que el correo del representante exista
         const existingMail = await AliadoModel.getAliadoByMail(nuevoCorreo);
-        if(!existingMail){
-            return res.status(400).json({ error: 'El correo no está registrado'});
-        }
-
-        //Actualizaremos nombre
-        if(nuevoNombre){
-            await AliadoModel.updateAliadoName(idAliado, nuevoNombre) // Actualiza "nombre"
+        if(existingMail){
+            return res.status(400).json({ error: 'El correo está registrado'});
         }
 
         if(nuevoCorreo){
@@ -673,6 +670,30 @@ app.put('/api/actualizarAliado', async (req, res) => {
                 return res.status(400).json({ error: 'El correo ya está registrado'});
             }
             await AliadoModel.updateAliadoMail(idAliado, nuevoCorreo); // Actualiza "correo_electronico"
+        }
+
+        if(nuevoNumero){
+            await AliadoModel.updateAliadoNumero(idAliado, nuevoNumero); // Actualiza "numero"
+        }
+
+        if(nuevaDescripcion){
+            await AliadoModel.updateAliadoDescripcion(idAliado, nuevaDescripcion); // Actualiza "descripcion"
+        }
+        
+        if(nuevaCalle){
+            await AliadoModel.updateAliadoCalle(idAliado, nuevaCalle); // Actualiza "calle"
+        }
+
+        if(nuevaColonia){
+            await AliadoModel.updateAliadoColonia(idAliado, nuevaColonia); // Actualiza "colonia"
+        }
+
+        if(nuevoCURP){
+            await AliadoModel.updateAliadoCURP(idAliado, nuevoCURP); // Actualiza "CURP"
+        }
+
+        if(nuevoNombre){
+            await AliadoModel.updateAliadoName(idAliado, nuevoNombre) // Actualiza "nombre"
         }
 
         if(nuevaContrasena){
@@ -750,10 +771,172 @@ app.post('/api/restablecerAliadoContrasena', async (req, res) => {
 //============ENPOINTS DE ALIADO_APOYA_ESCUELA============//
 
 //============ENPOINTS DE PERSONA_MORAL============//
+//Endpoint para registrar al aliado como persona moral
+app.post('/api/registroPersonaMoral', async (req, res) => { 
+    try{
+        const {giro, proposito, nombre_organizacion, pagina_web, idAliado} = req.body;
+
+        //Validar que no sean campos vacíos
+        if(!giro || !proposito || !nombre_organizacion || !pagina_web || !idAliado){
+            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+        }
+
+        //Validar que el idAliado exista
+        const existingAliado = await AliadoModel.getAliadoById(idAliado);
+        if(!existingAliado){
+            return res.status(404).json({ error: 'El idAliado no está registrado'});
+        }
+
+        //Crear a la persona moral
+        await PersonaMoralModel.createPersonaMoral({ giro, proposito, nombre_organizacion, pagina_web, idAliado });
+        return res.status(201).json({ message: 'Persona moral registrada exitosamente' });
+    }catch(error){
+        console.error('Error al registrar persona moral:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+//Endpoint para actualizar los datos de un aliado como persona moral
+app.put('/api/actualizarPersonaMoral', async (req, res) => {
+    try{
+        const {idPersonaMoral, nuevoGiro, nuevoProposito, nuevoNombreOrganizacion, nuevaPaginaWeb} = req.body;
+
+        //Validar que existe la persona moral
+        const existingPersonaMoral = await PersonaMoralModel.getPersonaMoralById(idPersonaMoral);
+        if(!existingPersonaMoral){
+            return res.status(404).json({ error: 'Persona moral no encontrada'});
+        }
+
+        //Actualizar los campos de la persona moral
+        if(nuevoGiro){
+            await PersonaMoralModel.updatePersonaMoralGiro(idPersonaMoral, nuevoGiro); // Actualiza "giro"
+        }
+
+        if(nuevoProposito){
+            await PersonaMoralModel.updatePersonaMoralProposito(idPersonaMoral, nuevoProposito); // Actualiza "proposito"
+        }
+
+        if(nuevoNombreOrganizacion){
+            await PersonaMoralModel.updatePersonaMoralNombre_organizacion(idPersonaMoral, nuevoNombreOrganizacion); // Actualiza "nombre_organizacion"
+        }
+        
+        if(nuevaPaginaWeb){
+            await PersonaMoralModel.updatePersonaMoralPagina_web(idPersonaMoral, nuevaPaginaWeb); // Actualiza "pagina_web"
+        }
+
+        return res.status(200).json({ message: 'Persona moral actualizada exitosamente' });
+    }catch(error){
+        console.error('Error al actualizar persona moral:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+//Endpoint para obtener los datos de la persona moral por su pagina web (UTILIZAMOS QUERY-STRING)
+app.get('/api/personaMoral/pagina_web/:pagina_web', async (req, res) => {
+    try{
+        const personaMoralPaginaWeb = req.params.pagina_web.trim(); // Eliminar espacios en blanco al inicio y al final
+    
+        //Validar que no sea un campo vacío
+        if(!personaMoralPaginaWeb){
+            return res.status(400).json({ error: 'El campo pagina web es obligatorio' });
+        }
+
+        //Validar que exista la pagina web en la base de datos
+        if(!personaMoralPaginaWeb){
+            return res.status(404).json({ error: 'La pagina web no esta registrada'});
+        }
+
+        return res.status(200).json(personaMoralPaginaWeb);
+    }catch(error){
+        console.error('Error al obtener persona moral:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+//Endpoint para obtener los datos de la persona moral por su nombre de organización (UTILIZAMOS QUERY-STRING)
+app.get('/api/personaMoral/nombre_organizacion/:nombre_organizacion', async (req, res) => {
+    try{
+        const personaMoralNombreOrganizacion = req.params.nombre_organizacion.trim(); // Eliminar espacios en blanco al inicio y al final
+
+        //Validar que no sea un campo vacío
+        if(!personaMoralNombreOrganizacion){
+            return res.status(400).json({ error: 'El campo nombre organizacion es obligatorio' });
+        }
+
+        //Validar que exista la pagina web en la base de datos
+        const existingPersonaMoral = await PersonaMoralModel.getPersonaMoralByNombre_organizacion(personaMoralNombreOrganizacion);
+        if(!existingPersonaMoral){
+            return res.status(404).json({ error: 'La pagina web no esta registrada'});
+        }
+
+        return res.status(200).json(existingPersonaMoral);
+    }catch(error){
+        console.error('Error al obtener persona moral:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 
 //============ENPOINTS DE ESCRITURA_PUBLICA============//
+//Endpoint para registrar la escritura pública
+app.post('/api/registroEscrituraPublica', async (req, res) => {
+    try{
+        const {idAliado, idPersonaMoral, fecha_escritura, notario, numero_escritura, ciudad} = req.body;
+
+        //Validar que no sean campos vacíos
+        if(!idAliado || !idPersonaMoral || !fecha_escritura || !notario || !numero_escritura || !ciudad) {
+            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+        }
+
+        //Validar que el idAliado exista
+        const existingAliado = await AliadoModel.getAliadoById(idAliado);
+        if(!existingAliado){
+            return res.status(404).json({ error: 'El idAliado no está registrado'});
+        }
+
+        //Validar que el idPersonaMoral exista
+        const existingPersonaMoral = await PersonaMoralModel.getPersonaMoralById(idPersonaMoral);
+        if(!existingPersonaMoral){
+            return res.status(404).json({ error: 'El idPersonaMoral no está registrado'});
+        }
+
+        //Registrar la escritura pública
+        await EscrituraPublicaModel.createEscrituraPublica({ idAliado, idPersonaMoral, fecha_escritura, notario, numero_escritura, ciudad });
+
+        return res.status(201).json({ message: 'Escritura pública registrada exitosamente' });
+    }catch(error){
+        console.error('Error al registrar escritura pública:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+//Endpoint para obtener los datos de la escritura pública por su notario (UTILIZAMOS QUERY-STRING)
+app.get('/api/escrituraPublica/notario/:notario', async (req, res) => {
+    try{
+        const escrituraPublicaNotario = req.params.notario.trim(); // Eliminar espacios en blanco al inicio y al final
+
+        //Validar que no sea un campo vacío
+        if(!escrituraPublicaNotario){
+            return res.status(400).json({ error: 'El campo notario es obligatorio' });
+        }
+
+        //Validar que exista la escritura pública en la base de datos
+        const existingEscrituraPublica = await EscrituraPublicaModel.getEscrituraPublicaByNotario(escrituraPublicaNotario);
+        if(!existingEscrituraPublica){
+            return res.status(404).json({ error: 'La escritura pública no esta registrada'});
+        }
+
+        return res.status(200).json(existingEscrituraPublica);
+    }catch(error){
+        console.error('Error al obtener escritura pública:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 
 //============ENPOINTS DE CONSTANCIA_FISCAL============//
+
+//============NECESIDAD============//
 
 //============NECESIDAD============//
 
@@ -761,4 +944,3 @@ app.post('/api/restablecerAliadoContrasena', async (req, res) => {
 app.listen(port, () =>{
     console.log(`Servidor en http://localhost:${port}`);
 })
-//============NECESIDAD============//
