@@ -318,6 +318,54 @@ app.post('/api/restablecerRepreContrasena', async (req, res) => {
     }
 });
 
+//Endpoint para obtener el representante por su id
+app.get('/api/representanteId/:id', async (req, res) => {
+    try{
+        const repreId = req.params.id;
+
+        //validar que no sea un campo vacío
+        if(!repreId){
+            return res.status(400).json({ error: 'El campo id es obligatorio' });
+        }
+
+        //Validar que el representante exista en la base de datos
+        const existingRepre = await RepresentanteModel.getRepresentanteById(repreId);
+        if(!existingRepre){
+            return res.status(404).json({ error: 'El representante no esta registrado'});
+        }
+
+        //Si el representante existe, regresamos los datos del representante
+        return res.status(200).json(existingRepre);
+    }catch(error){
+        console.error('Error al obtener el representante por su id: ', error);
+        return res.status(500).json({error: 'Error al obtener el representante'});
+    }
+});
+
+//Endpoint para obtener el representante por su numero de telefono
+app.get('/api/representanteTel/:numero_telefonico', async (req, res) => {
+    try{
+        const numTelRepre = req.params.numero_telefonico;
+
+        //validar que no sea un campo vacío
+        if(!numTelRepre){
+            return res.status(400).json({ error: 'El campo numero de telefono es obligatorio' });
+        }
+
+        //Validar que el representante exista en la base de datos
+        const existingRepre = await RepresentanteModel.getRepresentanteByPhone(numTelRepre);
+        if(!existingRepre){
+            return res.status(404).json({ error: 'El representante no esta registrado'});
+        }
+
+        //Si el representante existe, regresamos los datos del representante
+        return res.status(200).json(existingRepre);
+    }catch(error){
+        console.error('Error al obtener el representante por su numero de telefono: ', error);
+        return res.status(500).json({error: 'Error al obtener el representante'});
+    }
+});
+
 //============ENPOINTS DE ESCUELA============//
 //Endpoint de registro de escuela
 app.post('/api/registroEscuela', async (req, res) => { 
