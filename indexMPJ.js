@@ -12,6 +12,7 @@ const EscuelaModel = require('./models/mEscuela.js');
 const AliadoModel = require('./models/mAliado.js');
 const PersonaMoralModel = require('./models/mPersona_Moral.js');
 const EscrituraPublicaModel = require('./models/mEscritura_Publica.js');
+const ConstanciaFiscalModel = require('./models/mConstancia_Fiscal.js');
 
 app.use(express.static('public')); //Para poder servir archivos estáticos como HTML, CSS, JS, etc.
 app.use(express.json()); //Para poder recibir datos en formato JSON en el body de las peticiones
@@ -933,8 +934,132 @@ app.get('/api/escrituraPublica/notario/:notario', async (req, res) => {
     }
 });
 
+//Endpoint para obtener los datos de la escritura pública por su ciudad (UTILIZAMOS QUERY-STRING)
+app.get('/api/escrituraPublica/ciudad/:ciudad', async (req, res) => {
+    try{
+        const escrituraPublicaCiudad = req.params.ciudad.trim(); // Eliminar espacios en blanco al inicio y al final
+
+        //Validar que no sea un campo vacío
+        if(!escrituraPublicaCiudad){
+            return res.status(400).json({ error: 'El campo ciudad es obligatorio' });
+        }
+
+        //Validar que exista la escritura pública en la base de datos
+        const existingEscrituraPublica = await EscrituraPublicaModel.getEscrituraPublicaByCiudad(escrituraPublicaCiudad);
+        if(!existingEscrituraPublica){
+            return res.status(404).json({ error: 'La escritura pública no esta registrada'});
+        }
+
+        return res.status(200).json(existingEscrituraPublica);
+    }catch(error){
+        console.error('Error al obtener escritura pública:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 
 //============ENPOINTS DE CONSTANCIA_FISCAL============//
+//Endpoint para registrar la constancia fiscal
+app.post('/api/registroConstanciaFiscal', async (req, res) => {
+    try{
+        const {idPersonaMoral, RFC, razon_social, domicilio, regimen} = req.body;
+
+        //Validar que no sean campos vacíos
+        if(!idPersonaMoral || !RFC || !razon_social || !domicilio || !regimen) {
+            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+        }
+
+        //Validar que la persona moral exista
+        const existingPersonaMoral = await PersonaMoralModel.getPersonaMoralById(idPersonaMoral);
+        if(!existingPersonaMoral){
+            return res.status(404).json({ error: 'La persona moral no está registrado'});
+        }
+
+        //Registrar la constancia fiscal
+        await ConstanciaFiscalModel.createConstanciaFiscal({ idPersonaMoral, RFC, razon_social, domicilio, regimen });
+        return res.status(201).json({ message: 'Constancia fiscal registrada exitosamente' });
+    }catch(error){
+        console.error('Error al registrar constancia fiscal:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+//Endpoint para actualizar datos de la constancia fiscal
+app.put('/api/actualizarConstanciaFiscal', async (req, res) => {
+    try{
+        const {idConstanciaFiscal, nuevoRFC, nuevoDomicilio, nuevaRazonSocial} = req.body;
+
+        //Validar que exista la constancia fiscal
+        const existingConstanciaFiscal = await ConstanciaFiscalModel.getConstanciaFiscalById(idConstanciaFiscal);
+        if(!existingConstanciaFiscal){
+            return res.status(404).json({ error: 'Constancia fiscal no encontrada'});
+        }
+
+        //Actualizar los datos
+        if(nuevoRFC){
+            await ConstanciaFiscalModel.updateConstanciaFiscalRFC(idConstanciaFiscal, nuevoRFC); // Actualiza "RFC"
+        }
+
+        if(nuevoDomicilio){
+            await ConstanciaFiscalModel.updateConstanciaFiscalDomicilio(idConstanciaFiscal, nuevoDomicilio); // Actualiza "domicilio"
+        }
+
+        if(nuevaRazonSocial){
+            await ConstanciaFiscalModel.updateConstanciaFiscalRazonSocial(idConstanciaFiscal, nuevaRazonSocial); // Actualiza "razon_social"
+        }
+
+        return res.status(200).json({ message: 'Constancia fiscal actualizada exitosamente' });
+    }catch(error){
+        console.error('Error al actualizar constancia fiscal:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+//Endpoint para obtener los datos de la constancia fiscal por su RFC (UTILIZAMOS QUERY-STRING)
+app.get('/api/constanciaFiscal/RFC/:RFC', async (req, res) => {
+    try{
+        const constanciaFiscalRFC = req.params.RFC.trim(); // Eliminar espacios en blanco al inicio y al final
+
+        //Validar que no sea un campo vacío
+        if(!constanciaFiscalRFC){
+            return res.status(400).json({ error: 'El campo RFC es obligatorio' });
+        }
+
+        //Validar que exista la constancia fiscal en la base de datos
+        const existingConstanciaFiscal = await ConstanciaFiscalModel.getConstanciaFiscalByRFC(constanciaFiscalRFC);
+        if(!existingConstanciaFiscal){
+            return res.status(404).json({ error: 'La constancia fiscal no esta registrada'});
+        }
+
+        return res.status(200).json(existingConstanciaFiscal);
+    }catch(error){
+        console.error('Error al obtener constancia fiscal:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+//Endpoint para obtener los datos de la constancia fiscal por su domicilio (UTILIZAMOS QUERY-STRING)
+app.get('/api/constanciaFiscal/domicilio/:domicilio', async (req, res) => {
+    try{
+        const constanciaFiscalDomicilio = req.params.domicilio.trim(); // Eliminar espacios en blanco al inicio y al final
+
+        //Validar que no sea un campo vacío
+        if(!constanciaFiscalDomicilio){
+            return res.status(400).json({ error: 'El campo domicilio es obligatorio' });
+        }
+
+        //Validar que exista la constancia fiscal en la base de datos
+        const existingConstanciaFiscal = await ConstanciaFiscalModel.getConstanciaFiscalByDomicilio(constanciaFiscalDomicilio);
+        if(!existingConstanciaFiscal){
+            return res.status(404).json({ error: 'La constancia fiscal no esta registrada'});
+        }
+
+        return res.status(200).json(existingConstanciaFiscal);
+    }catch(error){
+        console.error('Error al obtener constancia fiscal:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
 
 //============NECESIDAD============//
 
