@@ -1,0 +1,105 @@
+.registroContainer {
+  font-family: 'Montserrat', sans-serif;
+  background-color: rgba(0, 153, 51, 0.3);
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.formContainer {
+  max-width: 600px;
+  margin: 30px auto;
+  padding: 40px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.formTitle {
+  text-align: center;
+  color: #009933;
+  margin-bottom: 40px;
+  width: 100%;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #009933;
+}
+
+.input,
+.select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.button {
+  width: 100%;
+  max-width: 400px;
+  padding: 15px 20px;
+  background-color: #009933;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  text-align: center;
+  line-height: 1.2;
+  margin: 20px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  white-space: normal;
+}
+
+.button:hover {
+  background-color: #026322;
+  transform: scale(1.02);
+}
+
+.textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  font-family: 'Montserrat', sans-serif;
+  resize: none;
+}
+
+.input:focus,
+.textarea:focus {
+  outline: 2px solid orange;
+  border-color: orange;
+}
+
+.representanteTitle {
+  text-align: center;
+  color: #009933;
+  margin-top: 40px;
+  margin-bottom: 40px;
+  font-size: 28px;
+  font-weight: 600;
+  width: 100%;
+} 

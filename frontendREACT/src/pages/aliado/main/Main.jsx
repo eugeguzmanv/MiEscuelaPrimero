@@ -1,0 +1,90 @@
+import React, { useState } from 'react';
+import Header from '../../../components/Header';
+import PerfilAliado from './PerfilAliado';
+import EscuelasAliado from './EscuelasAliado';
+import ProyectosAliado from './ProyectosAliado';
+import styles from './Main.module.css';
+
+const Main = () => {
+  const [activeTab, setActiveTab] = useState('perfil');
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+  };
+
+  return (
+    <div className={styles.dashboardContainer}>
+      <Header />
+      <div className={styles.dashboardContent}>
+        <div className={styles.sideMenu}>
+          <nav>
+            <a 
+              href="#" 
+              className={`${styles.menuItem} ${activeTab === 'perfil' ? styles.active : ''}`} 
+              onClick={(e) => {
+                e.preventDefault();
+                handleTabChange('perfil');
+              }}
+            >
+              Perfil
+            </a>
+            <a 
+              href="#" 
+              className={`${styles.menuItem} ${activeTab === 'aliados' ? styles.active : ''}`} 
+              onClick={(e) => {
+                e.preventDefault();
+                handleTabChange('aliados');
+              }}
+            >
+              Escuelas
+            </a>
+            <a 
+              href="#" 
+              className={`${styles.menuItem} ${activeTab === 'proyectos' ? styles.active : ''}`} 
+              onClick={(e) => {
+                e.preventDefault();
+                handleTabChange('proyectos');
+              }}
+            >
+              Proyectos
+            </a>
+            <a 
+              href="#" 
+              className={`${styles.menuItem} ${activeTab === 'apoyos' ? styles.active : ''}`} 
+              onClick={(e) => {
+                e.preventDefault();
+                handleTabChange('apoyos');
+              }}
+            >
+              Apoyos
+            </a>
+          </nav>
+        </div>
+        <main className={styles.mainContent}>
+          {activeTab === 'perfil' && (
+            <div id="perfil-section" className={styles.contentSection}>
+              <PerfilAliado />
+            </div>
+          )}
+          {activeTab === 'aliados' && (
+            <div id="aliados-section" className={styles.contentSection}>
+              <EscuelasAliado />
+            </div>
+          )}
+          {activeTab === 'proyectos' && (
+            <div id="proyectos-section" className={styles.contentSection}>
+              <ProyectosAliado />
+            </div>
+          )}
+          {activeTab === 'apoyos' && (
+            <div id="apoyos-section" className={styles.contentSection}>
+              <h2>Apoyos Content Coming Soon</h2>
+            </div>
+          )}
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default Main; 

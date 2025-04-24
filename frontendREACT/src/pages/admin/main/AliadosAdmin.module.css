@@ -1,0 +1,101 @@
+.aliadosContainer {
+  font-family: 'Montserrat', sans-serif;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.aliadosGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.aliadoCard {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.aliadoCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.aliadoCard h2 {
+  color: #2C8B3F;
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.infoGroup {
+  margin-bottom: 15px;
+}
+
+.infoGroup label {
+  display: block;
+  color: #2C8B3F;
+  font-size: 14px;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.infoGroup p {
+  color: #333333;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 400;
+}
+
+.direccionGroup {
+  margin-bottom: 15px;
+}
+
+.direccionGroup label {
+  display: block;
+  color: #2C8B3F;
+  font-size: 14px;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.direccionDetails {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5px 15px;
+}
+
+.direccionDetails p {
+  margin: 0;
+  color: #333333;
+  font-size: 15px;
+}
+
+.editBtn {
+  background: #FF6B00;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.editBtn:hover {
+  background: #E65000;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .aliadosGrid {
+    grid-template-columns: 1fr;
+  }
+} 

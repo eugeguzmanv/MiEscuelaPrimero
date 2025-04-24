@@ -1,0 +1,132 @@
+.escuelasContainer {
+  padding: 20px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.escuelasGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  padding: 20px 0;
+}
+
+.escuelaCard {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 25px;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.escuelaCard h2 {
+  color: #2C8B3F;
+  font-size: 20px;
+  margin: 0 0 20px 0;
+  font-weight: 600;
+}
+
+.infoGroup {
+  margin-bottom: 15px;
+}
+
+.infoGroup label {
+  display: block;
+  color: #2C8B3F;
+  font-size: 14px;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.infoGroup p {
+  color: #333333;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.direccionGroup {
+  margin-bottom: 15px;
+}
+
+.direccionGroup label {
+  color: #2C8B3F;
+  font-size: 14px;
+  margin-bottom: 4px;
+  font-weight: 500;
+  display: block;
+}
+
+.direccionDetails {
+  margin-left: 0;
+  color: #333333;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.descripcionGroup {
+  margin-bottom: 15px;
+}
+
+.descripcionGroup label {
+  color: #2C8B3F;
+  font-size: 14px;
+  margin-bottom: 4px;
+  font-weight: 500;
+  display: block;
+}
+
+.descripcionGroup p {
+  color: #333333;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.contactarBtn {
+  background: #FF6B00;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 15px;
+  transition: background-color 0.2s;
+}
+
+.contactarBtn:hover {
+  background: #E65000;
+}
+
+/* Status indicator */
+.escuelaStatus {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  margin-top: 10px;
+}
+
+.statusActive {
+  background-color: #e8f5e9;
+  color: #009933;
+}
+
+.statusPending {
+  background-color: #fff3e0;
+  color: #f57c00;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .escuelasGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .escuelaCard {
+    margin: 10px 0;
+  }
+} 
