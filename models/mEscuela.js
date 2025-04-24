@@ -30,6 +30,7 @@ const EscuelaModel = {
     updateEscuelaColonia: (CCT, nuevaColonia) => db('Escuela').where({ CCT }).update({ colonia: nuevaColonia }),
     updateEscuelaNumero: (CCT, nuevoNumero) => db('Escuela').where({ CCT }).update({ numero: nuevoNumero }),
     updateEscuelaNumero_estudiantes: (CCT, nuevoNumeroAlumnos) => db('Escuela').where({ CCT }).update({ numero_estudiantes: nuevoNumeroAlumnos }),
+    updateEstadoValidacion: (CCT, nuevoEstado) => db('Escuela').where({ CCT }).update({ estado_validacion: nuevoEstado }), //Actualiza el estado de validación de la escuela
 
 
     //Obtener datos de las escuelas

@@ -5,6 +5,7 @@ exports.up = function(knex) {
         table.foreign('CCT').references('CCT').inTable('Escuela'); //Foreing key de la tabla Escuela
         table.integer('idAliado').notNullable(); //idAliado del aliado que brinda el apoyo
         table.foreign('idAliado').references('idAliado').inTable('Aliado'); //Foreing key de la tabla Aliado
+        table.date('fecha_inicio').notNullable().defaultTo(knex.fn.now()); //Fecha en la que se brinda el apoyo
     });
 }
 

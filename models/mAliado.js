@@ -1,5 +1,6 @@
 //Model de Aliado, para tener las funciones que haran las consultas a la base de datos
 const db = require('../db.js');
+const { updateEstadoValidacion } = require('./mEscuela.js');
 
 const AliadoModel = {
     //Apartado de registro de Aliado
@@ -46,6 +47,9 @@ const AliadoModel = {
 
   updateCURP: (idAliado, curp) =>
     db('Aliado').where({ idAliado }).update({ curp }),
+
+  updateEstadoValidacion: (idAliado, nuevoEstado) =>
+    db('Aliado').where({ idAliado }).update({ estado_validacion: nuevoEstado }), //Actualiza el estado de validación del aliado
 
     //Apartado para obetener datos del administrador/es
     getAliadoById: (idAliado) => db('Aliado').where({ idAliado }).first(), //Regresa UN solo objeto gracias al .first()

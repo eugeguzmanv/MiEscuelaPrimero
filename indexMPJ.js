@@ -14,6 +14,13 @@ const AliadoModel = require('./models/mAliado.js');
 const PersonaMoralModel = require('./models/mPersona_Moral.js');
 const ConstanciaFiscalModel = require('./models/mConstancia_Fiscal.js');
 const EscrituraPublicaModel = require('./models/mEscritura_Publica.js');
+const NecesidadModel = require('./models/mNecesidad.js');
+const DiagnosticoModel = require('./models/mDiagnostico.js');
+const ApoyoModel = require('./models/mApoyo.js');
+const AliadoBrindaApoyoModel = require('./models/mAliado_Brinda_Apoyo.js');
+const AliadoApoyaEscuelaModel = require('./models/mAliado_Apoya_Escuela.js');
+const ConvenioModel = require('./models/mConvenio.js');
+const FirmarConvenioModel = require('./models/mFirmarConvenio.js');
 
 // Configuración de variables de entorno para mostrar los usuarios
 const knex = require('knex')({
@@ -202,143 +209,100 @@ app.post('/api/admin/recuperar-contrasena', async (req, res) => {
         return res.status(500).json({error: 'Error interno del servidor'});
     }
 });
-//Endpoint para ver lista de necesidades
-app.get('/api/admin/diagnosticos/necesidades', async (req, res) => {
-    try{
-        const {idDiagnostico, status, ponderacion, categoria} = req.query; //Recibimos los filtros por query string
 
-        //Validación simple
-        if(ponderacion && isNaN(Number(ponderacion))){
-            return res.status(400).json({error: 'Parámetro "ponderacion" inválido'});
-        }
-
-        //Construir la consulta principal
-        let query = db('Necesidad')
-      .join('Diagnostico', 'Necesidad.idDiagnostico', 'Diagnostico.idDiagnostico')
-      .select(
-        'Necesidad.idNecesidad as id',
-        'Necesidad.descripcion as descripcion_necesidad',
-        'Necesidad.categoria',
-        'Necesidad.ponderacion',
-        'Necesidad.estado as estatus',
-        'Escuela.CCT',
-        'Escuela.nombre as nombre_escuela',
-        'Escuela.calle',
-        'Escuela.numero',
-        'Escuela.colonia',
-        'Escuela.municipio'
-      );
-
-      //Aplicar filtros si están presentes
-      if(idDiagnostico) query.where('Necesidad.idDiagnostico', idDiagnostico);
-      if(status) query.where('Necesidad.status', status);
-      if(ponderacion) query.where('Necesidad.ponderacion', Number(ponderacion));
-      if(categoria) query.where('Necesidad.categoria', categoria);
-
-
-      const necesidades = await query;
-
-      if(!necesidades.length){
-        return res.status(404).json({error: 'No hay necesidades registradas'});
-      }
-
-      //Obtener evidencias por cada necesidad
-        const necesidadesConEvidencias = await Promise.all(necesidades.map(async (necesidad) => {
-            const evidencias = await db('Evidencia')
-            .where({
-                idNecesidad: necesidad.id,
-                tipoReferencia: 'Necesidad'
-            })
-            .select('ruta', 'tipo_evidencia', 'nombre');
-            return {
-                id: necesidad.id,
-                escuela:{
-                    CCT: necesidad.CCT,
-                    nombre: necesidad.nombre_escuela,
-                    direccion:{
-                        calle: necesidad.calle,
-                        numero: necesidad.numero,
-                        colonia: necesidad.colonia,
-                        municipio: necesidad.municipio
-                    }
-                },
-                descripcion_necesidad: necesidad.descripcion_necesidad,
-                categoria: necesidad.categoria,
-                ponderacion: necesidad.ponderacion,
-                estatus: necesidad.estatus,
-                evidencias: evidencias.map(e => ({ruta: e.ruta}))
-            };
-            
-        })
-    );
-
-            res.status(200).json({necesidades: necesidadesConEvidencias});
-            
-        } catch(error){
-            console.error('Error al obtener necesidades:', error);
-            return res.status(500).json({ error: 'Error interno del servidor' });
-        }
-    });
 
 //Endpoint para validar/rechazar necesidades
 app.put('/api/admin/necesidades/:idNecesidad/validar', async (req, res) =>{
-    const {id} = req.params;
-    const {validado} = req.body; //validado: true o false
-
-    // Validar que el campo validado esté presente y sea un booleano
-    if(typeof validado !== 'boolean'){
-        return res.status(400).json({error: 'Campo "status" inválido'});
-    }
-
     try{
-        // Buscar necesidad
-        const necesidad = await knex('Necesidad').where({idNecesidad:id}).first();
+        const idNecesidad = req.params.idNecesidad;
+        const {estatus} = req.body;
 
-        if(!necesidad){
-            return res.status(404).json({error: 'Necesidad no encontrada'});
-        }
-        if(necesidad.status !== 'Pendiente'){
-            return res.status(409).json({error: 'La necesidad ya fue validada/rechazada'});
+        //Validar que no sea un campo vacío
+        if(!estatus){
+            return res.status(400).json({ error: 'El campo estatus es obligatorio' });
         }
 
-        //Determinar nuevo estado
-        const nuevoEstado = validado ? 'Validada' : 'Rechazada';
-        // Actualizar necesidad
-        await knex('Necesidad').where({idNecesidad:id}).update({status: nuevoEstado});
+        //Validar que la necesidad exista
+        const existingNecesidad = await NecesidadModel.getNecesidadesByDiagnosticoId(idNecesidad);
+        if(!existingNecesidad){
+            return res.status(404).json({ error: 'La necesidad no existe'});
+        }
 
-        //Simulación de notificación al representante
-        await knex('Notificacion').insert({
-            tipo: 'necesidad_validada',
-            contenido: `Tu necesidad ha sido ${nuevoEstado}`,
-            idEntidad: id, // id de la necesidad
-            entidad: 'Necesidad' // Tipo de entidad 
+        //Actualizar el estatus de la necesidad
+        await NecesidadModel.updateEstatus(idNecesidad, estatus);
 
-        });
-
-        return res.status(200).json({
-            message: `Necesidad ${nuevoEstado}`,
-            necesidad: {
-                id: parseInt(id),
-                status: nuevoEstado
-            }, 
-            notificacionEnviada: true
-
-        });
-    } catch(error){
-    console.error('Error al validar necesidad:', error);
-    return res.status(500).json({ error: 'Error interno al procesar la validación' });
-
+        return res.status(200).json({ message: 'Estatus actualizado exitosamente'});
+    }catch(error){
+        console.error('Error al validar necesidad:', error);
+        return res.status(500).json({error: 'Error interno del servidor'});
     }
 })
 
+//Endpoint para validar/rechazar escuelas
+app.put('/api/admin/escuelas/:CCT/validar', async (req, res) => {
+    try{
+        const CCT = req.params.CCT;
+        const {estado_validacion} = req.body;
 
+        //Validar que no sea un campo vacío
+        if(!estado_validacion){
+            return res.status(400).json({ error: 'El campo estatus es obligatorio' });
+        }
 
-//Endpoints para Validar escuelas y aliados
+        //Validar que la escuela exista
+        const existingEscuela = await EscuelaModel.getEscuelaById(CCT);
+        if(!existingEscuela){
+            return res.status(404).json({ error: 'La escuela no existe'});
+        }
 
+        //Actualizar el estatus de la escuela
+        await EscuelaModel.updateEstadoValidacion(CCT, estado_validacion);
 
+        return res.status(200).json({ message: 'Estatus actualizado exitosamente'});
+    }catch(error){
+        console.error('Error al validar escuela:', error);
+        return res.status(500).json({error: 'Error interno del servidor'});
+    }
+})
 
+// Endpoint para validar/rechazar aliados
+app.put('/api/admin/aliados/:idAliado/validar', async (req, res) => {
+    try{
+        const idAliado = req.params.idAliado;
+        const {estado_validacion} = req.body;
 
+        //Validar que no sea un campo vacío
+        if(!estado_validacion){
+            return res.status(400).json({ error: 'El campo estatus es obligatorio',
+             });
+        }
 
+        //Validar que el aliado exista
+        const existingAliado = await AliadoModel.getAliadoById(idAliado);
+        if(!existingAliado){
+            return res.status(404).json({ error: 'El aliado no existe'});
+        }
+
+        //Actualizar el estatus del aliado
+        await AliadoModel.updateEstadoValidacion(idAliado, estado_validacion);
+
+        return res.status(200).json({ message: 'Estatus actualizado exitosamente'});
+    }catch(error){
+        console.error('Error al validar aliado:', error);
+        return res.status(500).json({error: 'Error interno del servidor'});
+    }
+})
+
+//Endpoint mostrar lista de administradores
+app.get('/api/admin/catalogo/administradores', async (req, res) =>{
+    try{
+        const admins = await AdminModel.getAllAdmins();
+        return res.status(200).json({ message: 'Lista de administradores', admins});
+    }catch(error){
+        console.error('Error al obtener lista de administradores:', error);
+        return res.status(500).json({error: 'Error interno del servidor'});
+    }
+})
 
 //============ENPOINTS DE REPRESENTANTE============//
 //Endpoint de registro de representante
@@ -748,7 +712,7 @@ app.get('/api/escuelas/', async (req, res) => {
         // Añadir filtros dinámicos
         if (nombre) {
             query += ` AND e.nombre ILIKE $${index++}`;
-            params.push(`%${nombre}%`);//Búsqueda parcial o coincidencias parciales
+            params.push(`%${nombre}%`);//Búsqueda o coincidencias con el nombre
         }
         if (municipio) {
             query += ` AND e.municipio = $${index++}`;
@@ -1323,7 +1287,7 @@ WHERE 1=1
         res.status(200).json({ aliados });
 
     } catch (error) {
-        console.error('Error en /api/catalogo/aliados:', error);
+        console.error('Error en mostrar aliados:', error);
         res.status(500).json({ error: "Error interno del servidor" });
     } finally {
         await client.end();
@@ -1333,18 +1297,233 @@ WHERE 1=1
 
 //============ENPOINTS DE NECESIDAD============//
 // Endpoint para registrar necesidad en el diagnóstico
+app.post('/api/escuelas/:CCT/diagnosticos/:idDiagnostico/necesidades', async (req, res) => {
+    const { CCT, idDiagnostico } = req.params;
+    const { categoria, descripcion, ponderacion, estatus } = req.body;
 
+    try {
+        if(!categoria || !descripcion || ponderacion === undefined) {
+            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+        }
+
+        //Validar rango de ponderación de la necesidad
+        if(typeof ponderacion !== 'number' || ponderacion < 1 || ponderacion > 10){
+            return res.status(400).json({ error: 'La ponderación debe ser un número entre 1 y 10' });
+        }
+        // Verificar que la escuela exista
+        const escuela = await db('Escuela').where({ CCT }).first();
+        if (!escuela) {
+            return res.status(404).json({ error: 'Escuela no encontrada' });
+        }
+
+        // Verificar que el diagnóstico exista
+        const diagnostico = await db('Diagnostico').where({ idDiagnostico, CCT, estado: 'activo' }).first();
+        if (!diagnostico) {
+            return res.status(404).json({ error: 'Diagnóstico no encontrado' });
+        }
+
+        // Registrar la necesidad en la base de datos
+        const [necesidad] = await NecesidadModel.createNecesidad({ idDiagnostico, ponderacion, descripcion,  estatus, categoria});
+
+        return res.status(201).json({ message: 'Necesidad registrada exitosamente', 
+            necesidad: {
+                idNecesidad: necesidad.idNecesidad,
+                categoria,
+                descripcion,
+                ponderacion
+            }
+         });
+    } catch (error) {
+        console.error('Error al registrar necesidad:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+
+
+});
+
+//Endpoint para mostrar necesidades de un diagnóstico
+app.get('/api/admin/diagnosticos/:idDiagnostico/necesidades', async (req, res) => {
+    const { idDiagnostico } = req.params;
+    try {
+        // Verificar que el diagnóstico exista
+        const diagnostico = await db('Diagnostico').where({ idDiagnostico }).first();
+        if (!diagnostico) {
+            return res.status(404).json({ error: 'Diagnóstico no encontrado' });
+        }
+
+        // Obtener las necesidades del diagnóstico
+        const necesidades = await NecesidadModel.getNecesidadesByDiagnosticoId(idDiagnostico);
+
+        return res.status(200).json({ necesidades });
+    }
+    catch (error) {
+        console.error('Error al obtener necesidades:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+
+});
 
 //============ENPOINTS DE DIAGNOSTICO============//
+//Endpoint para generar diagnóstico en la base de datos
+app.get('/api/escuelas/:CCT/diagnostico/activo', async(req, res) => {
+    const {CCT} = req.params; // Obtener el CCT de la escuela desde los parámetros de la consulta
 
+    try{
+        // Verificar que la escuela exista
+        const escuela = await db('Escuela').where({CCT}).first();
+        if(!escuela){
+            return res.status(404).json({ error: 'Escuela no encontrada' });
 
-//============ENPOINTS DE ALIADO============//
+        }
+        // Verificar que el diagnóstico esté activo
+        let diagnostico = await db('Diagnostico').where({CCT, estado: 'activo'}).first();
+
+        // Si no existe un diagnóstico activo, crear uno nuevo
+        if(!diagnostico){
+            const [diagnostico] = await DiagnosticoModel.createDiagnostico({CCT});
+            return res.status(201).json({ message: 'Diagnóstico creado exitosamente', diagnostico });
+        }
+
+    }catch(error){
+        console.error('Error al obtener diagnóstico:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+        
+    }
+
+});
 
 //============ENPOINTS DE APOYO============//
+//Endpoint para cargar apoyo
+app.post('/api/aliados/:idAliado/apoyos', async (req, res) => {
+    const { idAliado } = req.params;
+    const { tipo, estatus, categoria, descripcion} = req.body;
+
+    try {
+        // Validar que no sean campos vacíos
+        if (!tipo || !categoria || !descripcion) {
+            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+        }
+
+        // Validar que el aliado exista en la base de datos
+        const existingAliado = await AliadoModel.getAliadoById(idAliado);
+        if (!existingAliado) {
+            return res.status(404).json({ error: 'El aliado no existe' });
+        }
+
+        // Registrar el apoyo en la base de datos
+        const apoyo = await ApoyoModel.createApoyo({ idAliado, tipo, estatus, categoria, descripcion });
+
+        // Registrar la relación con la tabla Aliado_Brinda_Apoyo
+        await AliadoBrindaApoyoModel.createAliadoBrindaApoyo({ idAliado, idApoyo: apoyo.idApoyo });
+
+        return res.status(201).json({ message: 'Apoyo registrado exitosamente',
+            apoyo: {
+                idAliado,
+                tipo,
+                estatus,
+                categoria,
+                descripcion
+            }
+         });
+    } catch (error) {
+        console.error('Error al registrar apoyo:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+//Endpoint para editar el apoyo para próximos ciclos escolares
+app.put('/api/aliados/:idAliado/apoyos/:idApoyo', async (req, res) =>{
+    const {idAliado, idApoyo} = req.params;
+    const {tipo, estatus, categoria, descripcion} = req.body;
+
+    try{
+
+        // Validar que el aliado exista en la base de datos
+        const existingAliado = await AliadoModel.getAliadoById(idAliado);
+        if (!existingAliado) {
+            return res.status(404).json({ error: 'El aliado no existe' });
+        }
+
+        // Validar que el apoyo exista en la base de datos
+        const existingApoyo = await ApoyoModel.getApoyoById(idApoyo);
+        if (!existingApoyo) {
+            return res.status(404).json({ error: 'El apoyo no existe' });
+        }
+
+       // Actualizar los campos enviados en la solicitud
+       if (tipo) await ApoyoModel.updateApoyoTipo(idApoyo, tipo);
+       if (estatus) await ApoyoModel.updateApoyoEstatus(idApoyo, estatus);
+       if (categoria) await ApoyoModel.updateApoyoCategoria(idApoyo, categoria);
+       if (descripcion) await ApoyoModel.updateApoyoDescripcion(idApoyo, descripcion);
+
+        return res.status(200).json({
+            message: 'Información actualizada exitosamente'
+          });
+    }catch(error){
+        console.error('Error al editar apoyo:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+
+})
+// Endpoint para crear el convenio
+app.post('/api/convenios', async (req, res) => {
+
+    try {
+        const [convenio] = await ConvenioModel.createConvenio();
+        return res.status(201).json({ message: 'Convenio creado exitosamente', convenio });
+    } catch (error) {
+        console.error('Error al registrar convenio:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+
+})
+// Endpoint para la firma de convenios
+
+app.put('/api/convenios/:idConvenio/firmar', async (req, res) => {
+    const { idConvenio } = req.params;
+    const { idAliado, CCT } = req.body; // Obtener el idAliado y CCT del cuerpo de la solicitud
+
+    try {
+        // Validar que el convenio exista
+        const existingConvenio = await ConvenioModel.getConvenioById(idConvenio);
+        if (!existingConvenio) {
+            return res.status(404).json({ error: 'El convenio no existe' });
+        }
+
+         // Validar que la escuela exista
+         const existingEscuela = await EscuelaModel.getEscuelaById(CCT);
+         if (!existingEscuela) {
+             return res.status(404).json({ error: 'La escuela no existe' });
+         }
+
+        // Validar que el aliado exista
+        const existingAliado = await AliadoModel.getAliadoById(idAliado);
+        if (!existingAliado) {
+            return res.status(404).json({ error: 'El aliado no existe' });
+        }
+
+        // Validar que ya no exista una firma para esta combinacion
+        const existingFirma = await FirmarConvenioModel.getFirmasByConvenio(idConvenio, idAliado, CCT);
+if (existingFirma && existingFirma.length > 0) { 
+    return res.status(400).json({ error: 'La firma ya existe para este convenio' });
+}
+
+        // Registrar la firma del convenio 
+        const fecha_firma = new Date();
+        await FirmarConvenioModel.createFirma({ idConvenio, idAliado, CCT, fecha_firma: fecha_firma });
+
+        // Marcar el convenio como firmado
+        await ConvenioModel.markConvenioAsFirmado(idConvenio);
+        
+        return res.status(200).json({ message: 'Convenio firmado exitosamente' });
+    } catch (error) {
+        console.error('Error al firmar convenio:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+})
 
 //============ENPOINTS DE ESCUELA_RECIBE_APOYO============//
 
-//============ENPOINTS DE ALIADO_BRINDA_APOYO============//
 
 //============ENPOINTS DE CRONOGRAMA============//
 
@@ -1360,126 +1539,118 @@ WHERE 1=1
 //============ENPOINTS DE NOTIFICACION============//
 
 //============ENPOINTS DE ALIADO_APOYA_ESCUELA============//
+//Endpoint para crear el match entre el aliado y la escuela
+app.post('/api/aliado/:idAliado/apoyaEscuela/:CCT', async (req, res) => {
 
-//============ENPOINTS DE PERSONA_MORAL============//
+    const {idAliado, CCT} = req.params;
 
-//Endpoint para registrar todos los datos de persona moral, constancia fiscal y escritura pública, ya que el registro se está haciendo en una sola página del frontend
-app.post('/api/aliado/:idAliado/registro-completo', async (req, res) => {
-    const trx = await knex.transaction(); // Iniciar transacción
-    
-    try {
-        const {idAliado} = req.params;
-        const {
-            // Datos de Persona Moral
-            nombre_organizacion, 
-            proposito, 
-            giro, 
-            pagina_web,
-            // Datos de Escritura Pública
-            numero_escritura, 
-            notario, 
-            ciudad, 
-            fecha_escritura,
-            // Datos de Constancia Fiscal
-            RFC, 
-            regimen, 
-            domicilio, 
-            razon_social
-        } = req.body;
-
-        // Validaciones iniciales
-        if(!nombre_organizacion || !proposito || !giro || !pagina_web) {
-            await trx.rollback(); // Si falta algún campo de registrar, revertir la transacción y no se registra ningún dato
-            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
-        }
-
-        if(!numero_escritura || !notario || !ciudad || !fecha_escritura) {
-            await trx.rollback();
-            return res.status(400).json({ error: 'Todos los campos de Escritura Pública son obligatorios' });
-        }
-
-        if(!RFC || !regimen || !domicilio || !razon_social) {
-            await trx.rollback();
-            return res.status(400).json({ error: 'Todos los campos de Constancia Fiscal son obligatorios' });
-        }
-
-        // Validar que el aliado existe
-        const existingAliado = await AliadoModel.getAliadoById(idAliado).transacting(trx);
-        if (!existingAliado) {
-            await trx.rollback();
+    try{
+        // Validar que el aliado exista en la base de datos
+        const existingAliado = await AliadoModel.getAliadoById(idAliado);
+        if(!existingAliado){
             return res.status(404).json({ error: 'El aliado no existe' });
         }
 
-        // Validar que no sea persona física
-        if(existingAliado.tipo !== 'moral') {
-            await trx.rollback();
-            return res.status(400).json({ error: 'Solo aliados tipo moral pueden registrar esta información' });
+        // Validar que la escuela exista en la base de datos
+        const existingEscuela = await EscuelaModel.getEscuelaById(CCT);
+        if(!existingEscuela){
+            return res.status(404).json({ error: 'La escuela no existe' });
         }
 
-        //Registrar Persona Moral
-        const personaMoral = await PersonaMoralModel.createPersonaMoral({ idAliado, nombre_organizacion, proposito, giro, pagina_web 
-        }).transacting(trx);
-
-        const idPersonaMoral = personaMoral[0].idPersonaMoral; //Acceder al primer elemento del arreglo devuelto por la consulta
-
-        // Registrar Escritura Pública
-        const existingEscritura = await EscrituraPublicaModel.getEscrituraPublicaByNumero(numero_escritura).transacting(trx);
-        if(existingEscritura){
-            await trx.rollback();
-            return res.status(409).json({ error: 'La escritura pública ya está registrada'});
+        // Validar que no exista un match duplicado
+        const existingMatch = await AliadoApoyaEscuelaModel.getMatchById(idAliado, CCT);
+        if(existingMatch){
+            return res.status(409).json({ error: 'El match ya existe' });
         }
 
-        await EscrituraPublicaModel.createEscrituraPublica({ 
-            idPersonaMoral, 
-            numero_escritura, 
-            notario, 
-            ciudad, 
-            fecha_escritura 
-        }).transacting(trx);
+        // Crear el match entre el aliado y la escuela
+        await AliadoApoyaEscuelaModel.createMatch({ idAliado, CCT });
 
-        //Registrar Constancia Fiscal
-        await ConstanciaFiscalModel.createConstanciaFiscal({ 
-            idPersonaMoral, 
-            RFC, 
-            regimen, 
-            domicilio, 
-            razon_social 
-        }).transacting(trx);
-
-        // Si todo sale bien, confirmar la transacción
-        await trx.commit();
-
-        return res.status(201).json({ 
-            message: 'Aliado registrado exitosamente. Pendiente de validación',
-            datos: {
-                nombre_organizacion,
-                RFC,
-                numero_escritura,
-                regimen,
-                domicilio,
-                razon_social,
-                giro,
-                pagina_web,
-                proposito,
-                ciudad,
-                fecha_escritura,
-                notario
-            }
-        });
-
-    } catch(error) {
-        await trx.rollback();
-        console.error('Error en registro completo:', error);
-        return res.status(500).json({ 
-            error: 'Error interno del servidor',
-        });
+        return res.status(201).json({ message: 'Match creado exitosamente' });
+    } catch(error){
+        console.error('Error al crear el match:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 
-//============NECESIDAD============//
+
+//============ENPOINTS DE PERSONA_MORAL============//
+
+app.post('/api/aliado/:idAliado/registro/PersonaMoral', async (req, res) => {
+    try{
+        const {idAliado} = req.params;
+        const {nombre_organizacion, proposito, giro, pagina_web} = req.body;
+
+        //Validar que no sean campos vacíos
+        if(!nombre_organizacion || !proposito || !giro || !pagina_web) {
+            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+        }
+         // Validar que el idAliado exista en la base de datos
+         const existingAliado = await AliadoModel.getAliadoById(idAliado);
+         if (!existingAliado) {
+             return res.status(404).json({ error: 'El aliado no existe' });
+         }
+
+        //Registrar la nueva persona moral en la base de datos
+        await PersonaMoralModel.createPersonaMoral({ idAliado, nombre_organizacion, proposito, giro, pagina_web });
+
+        return res.status(201).json({ message: 'Persona moral registrada exitosamente' });
+    }catch(error){
+        console.error('Error al registrar persona moral:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+
+});
+
+//Endpoint para registrar la constancia fiscal de la persona moral
+app.post('/api/PersonaMoral/:idPersonaMoral/registro/ConstanciaFiscal', async (req, res) => {
+    try{
+        const {idPersonaMoral} = req.params;
+        const {RFC, regimen, domicilio, razon_social} = req.body;
+        
+        //Validar que no sean campos vacíos
+        if(!RFC || !regimen || !domicilio || !razon_social) {
+            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+        }
+
+        //Registrar la nueva constancia fiscal en la base de datos
+        await ConstanciaFiscalModel.createConstanciaFiscal({ idPersonaMoral, RFC, regimen, domicilio, razon_social });
+
+        return res.status(201).json({ message: 'Constancia fiscal registrada exitosamente' });
+    }catch(error){
+        console.error('Error al registrar constancia fiscal:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+//Endpoint para registrar la escritura pública de la persona moral
+app.post('/api/PersonaMoral/:idPersonaMoral/registro/EscrituraPublica', async (req, res) => {
+    try{
+        const {idPersonaMoral} = req.params;
+        const {numero_escritura, notario, ciudad, fecha_escritura} = req.body;
+
+        //Validar que no sean campos vacíos
+        if(!numero_escritura || !notario || !ciudad || !fecha_escritura) {
+            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+        }
+        const existingEscritura = await EscrituraPublicaModel.getEscrituraPublicaByNumero(numero_escritura);
+        if(existingEscritura){
+            return res.status(409).json({ error: 'La escritura pública ya está registrada'});
+        }
+
+        //Registrar la nueva escritura pública en la base de datos
+        await EscrituraPublicaModel.createEscrituraPublica({ idPersonaMoral, numero_escritura, notario, ciudad, fecha_escritura });
+
+        return res.status(201).json({ message: 'Escritura pública registrada exitosamente' });
+    }catch(error){
+        console.error('Error al registrar escritura pública:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 
 //Puerto de escucha
 app.listen(port, () =>{
     console.log(`Servidor en http://localhost:${port}`);
 })
-//============NECESIDAD============//
+
