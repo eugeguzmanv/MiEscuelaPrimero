@@ -3,7 +3,7 @@ exports.up = function(knex) {
         table.increments('idActividad').primary();
         table.string('nombre').notNullable();
         table.string('tipo').notNullable();
-        table.string('estatus').notNullable();
+        table.string('estatus').notNullable().defaultTo('en proceso'); //Estatus de la actividad, puede ser 'pendiente', 'en proceso' o 'finalizada'
         table.string('fecha_inicio').notNullable();
         table.string('fecha_fin').notNullable();
         table.integer('idCronograma').notNullable(); //idCronograma del cronograma al que pertenece la actividad

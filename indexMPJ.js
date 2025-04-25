@@ -2,13 +2,9 @@
 const express = require('express');
 const db = require('./db');
 const app = express();
-const bcrypt = require('bcrypt'); // Librería para encriptar contraseñas
-const nodemailer = require('nodemailer');
 const { Client } = require('pg'); // Librería para conectarse a PostgreSQL
 const port = 1000;
 //Requeriremos TODOS los modelos que definimos en la carpeta models
-const AdminModel = require('./models/mAdministrador.js');
-const RepresentanteModel = require('./models/mRepresentante.js');
 const EscuelaModel = require('./models/mEscuela.js');
 const AliadoModel = require('./models/mAliado.js');
 const PersonaMoralModel = require('./models/mPersona_Moral.js');
@@ -21,6 +17,7 @@ const AliadoBrindaApoyoModel = require('./models/mAliado_Brinda_Apoyo.js');
 const AliadoApoyaEscuelaModel = require('./models/mAliado_Apoya_Escuela.js');
 const ConvenioModel = require('./models/mConvenio.js');
 const FirmarConvenioModel = require('./models/mFirmarConvenio.js');
+const ActividadModel = require('./models/mActividad.js')
 
 // Configuración de variables de entorno para mostrar los usuarios
 const knex = require('knex')({
@@ -37,465 +34,18 @@ const knex = require('knex')({
 app.use(express.static('public')); //Para poder servir archivos estáticos como HTML, CSS, JS, etc.
 app.use(express.json()); //Para poder recibir datos en formato JSON en el body de las peticiones
 
+//Rutas
+const adminRouter = require('./rutas/admin.js');
+const representanteRouter = require('./rutas/repre.js');
+const escuelaRouter = require('./rutas/escuela.js');
+const aliadoRouter = require('./rutas/aliado.js');
+const CronogramaModel = require('./models/mCronograma.js');
+app.use('/api/admin', adminRouter);
+app.use('/api/representantes', representanteRouter);
+app.use('/api/escuelas', escuelaRouter);
+app.use('/api/aliados', aliadoRouter);
 
 
-//============ENPOINTS DE ADMINISTRADOR============//
-//Endpoint de registro de administrador
-app.post('/api/admin/registro', async (req, res) => {
-    try{
-        const {nombre, correo_electronico, contrasena} = req.body;
-
-        //Validar que no sean campos vacíos
-        if(!nombre || !correo_electronico || !contrasena) {
-            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
-        }
-
-        //Validar que el correo tenga el formato correcto (debe terminar en @mpj.com)
-        const emailRegex = /^[a-zA-Z0-9._%+-]+@mpj\.com$/; //Expresión regular para validar el correo
-        
-        //Validar que el correo tenga el formato correcto (debe terminar en @mpj.com)
-        if(!emailRegex.test(correo_electronico)) {
-            return res.status(400).json({ error: 'Correo electrónico no válido' });
-        }
-
-        //Validar que el correo no exista en la base de datos
-        const existingAdmin = await AdminModel.getAdminByMail(correo_electronico);
-        if(existingAdmin){
-            return res.status(409).json({ error: 'El correo ya está registrado'});
-        }
-    
-        //Registrar el nuevo administrador en la base de datos
-        await AdminModel.createAdmin({ nombre, correo_electronico, contrasena});
-
-        return res.status(201).json({ message: 'Administrador registrado exitosamente',
-            data: {
-                nombre: nombre,
-                correo: correo_electronico,
-                contrasena: contrasena
-              }});
-    }catch(error) {
-        console.error('Error al registrar administrador:', error);
-        return res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
-
-//Endpoint de inicio de sesión de administrador
-app.post('/api/admin/login', async (req, res) => { 
-    try{
-        const {correo_electronico, contrasena} = req.body;
-
-        //Validar que no sean campos vacíos
-        if(!correo_electronico || !contrasena) {
-            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
-        }
-
-        //Validar que el correo tenga el formato correcto (debe terminar en @mpj.com)
-        const emailRegex = /^[a-zA-Z0-9._%+-]+@mpj\.com$/; //Expresión regular para validar el correo
-
-        //Validar que la información exista en la base de datos
-        const existingAdmin = await AdminModel.getAdminByMail(correo_electronico);
-        if(!existingAdmin){
-            return res.status(404).json({ error: 'El correo no está registrado'});
-        }
-
-        //Validar que la contraseña sea correcta
-        if(existingAdmin.contrasena !== contrasena){
-            return res.status(400).json({ error: 'La contraseña es incorrecta'});
-        }
-
-        //Si todo es correcto, iniciar sesión
-        return res.status(200).json({ message: 'Inicio de sesión exitoso', rol: 'admin'});
-    }catch(error){
-        console.error('Error al iniciar sesión:', error);
-        return res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
-
-//Endpoint para actualizar datos del administrador
-app.put('/api/admin/:idAdmin/perfil', async (req, res) => { 
-    try{
-        const idAdmin = req.params.idAdmin;
-        const {nuevoCorreo, nuevaContrasena, nuevoNombre} = req.body;
-
-        //Validar que el admin existe
-        const adminActual = await AdminModel.getAdminById(idAdmin);
-        if(!adminActual){
-            return res.status(404).json({ error: 'Administrador no encontrado'});
-        }
-
-        //Validar el formato del correo (si se llega a enviar)
-        if(nuevoCorreo){
-            const emailRegex = /^[a-zA-Z0-9._%+-]+@mpj\.com$/; //Expresión regular para validar el correo
-            if(!emailRegex.test(nuevoCorreo)) {
-                return res.status(400).json({ error: 'El correo no es válido' });
-            }
-
-            //Validar que si el correo ya existe (solo si es diferente al actual)
-            if(nuevoCorreo !== adminActual.correo_electronico){
-                const existeCorreo = await AdminModel.getAdminByMail(nuevoCorreo);
-                if(existeCorreo){
-                    return res.status(409).json({ error: 'El correo ya está registrado'});
-                }
-            }
-        }
-
-        //Actualizar campos
-        if (nuevoNombre) {
-            await AdminModel.updateAdminName(idAdmin, nuevoNombre); // Actualiza "nombre"
-        }
-        if (nuevoCorreo) {
-            const newEmail = await AdminModel.getAdminByMail(nuevoCorreo);
-            if(newEmail?.idAdmin !== undefined && newEmail.idAdmin !== idAdmin){
-                return res.status(409).json({ error: 'El correo ya está registrado'});
-            }
-            await AdminModel.updateAdminMail(idAdmin, nuevoCorreo); // Actualiza "correo_electronico"
-        }
-        if (nuevaContrasena) {
-            await AdminModel.updateAdminPass(idAdmin, nuevaContrasena); // Actualiza "contrasena"
-        }
-
-        return res.status(200).json({ message: 'Administrador actualizado exitosamente' });
-    }catch(error){
-        console.error('Error al actualizar administrador:', error);
-        return res.status(500).json({error: 'Error interno del servidor'});
-    }
-});
-
-//Endpoint para enviar un email para restablecer la contraseña del Administrador
-app.post('/api/admin/recuperar-contrasena', async (req, res) => {
-    try{
-        const {correo_electronico} = req.body;
-
-        //Validar que no sea un campo vacío
-        if(!correo_electronico){
-            return res.status(400).json({error: 'El campo correo es obligatorio'});
-        }
-
-        //Validar que el correo exista en la base de datos
-        const existingAdmin = await AdminModel.getAdminByMail(correo_electronico);
-        if(!existingAdmin){
-            return res.status(404).json({ error: 'El correo no está registrado'});
-        }
-
-        const contrasenaRecuperada = admin.contrasena;
-
-    // Configuración del correo
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
-
-    await transporter.sendMail({
-      from: `"Mi Escuela Primero" <${process.env.EMAIL_USER}>`,
-      to: correo,
-      subject: 'Recuperación de contraseña - Mi Escuela Primero',
-      html: `
-        <h3>Hola ${admin.nombre},</h3>
-        <p>Recibiste este correo porque solicitaste recuperar tus credenciales de acceso como administrador.</p>
-        <p><strong>Correo registrado:</strong> ${admin.correo_electronico}</p>
-        <p><strong>Contraseña registrada:</strong> ${contrasenaRecuperada}</p>
-        <br>
-        <p>Te recomendamos cambiar tu contraseña al iniciar sesión.</p>
-      `
-    });
-
-        //Enviar un email para restablecer la contraseña
-        return res.status(200).json({ message: 'Se ha enviado un correo para restablecer la contraseña'});
-    }catch(error){
-        console.error('Error al enviar correo para restablecer contraseña:', error);
-        return res.status(500).json({error: 'Error interno del servidor'});
-    }
-});
-
-
-//Endpoint para validar/rechazar necesidades
-app.put('/api/admin/necesidades/:idNecesidad/validar', async (req, res) =>{
-    try{
-        const idNecesidad = req.params.idNecesidad;
-        const {estatus} = req.body;
-
-        //Validar que no sea un campo vacío
-        if(!estatus){
-            return res.status(400).json({ error: 'El campo estatus es obligatorio' });
-        }
-
-        //Validar que la necesidad exista
-        const existingNecesidad = await NecesidadModel.getNecesidadesByDiagnosticoId(idNecesidad);
-        if(!existingNecesidad){
-            return res.status(404).json({ error: 'La necesidad no existe'});
-        }
-
-        //Actualizar el estatus de la necesidad
-        await NecesidadModel.updateEstatus(idNecesidad, estatus);
-
-        return res.status(200).json({ message: 'Estatus actualizado exitosamente'});
-    }catch(error){
-        console.error('Error al validar necesidad:', error);
-        return res.status(500).json({error: 'Error interno del servidor'});
-    }
-})
-
-//Endpoint para validar/rechazar escuelas
-app.put('/api/admin/escuelas/:CCT/validar', async (req, res) => {
-    try{
-        const CCT = req.params.CCT;
-        const {estado_validacion} = req.body;
-
-        //Validar que no sea un campo vacío
-        if(!estado_validacion){
-            return res.status(400).json({ error: 'El campo estatus es obligatorio' });
-        }
-
-        //Validar que la escuela exista
-        const existingEscuela = await EscuelaModel.getEscuelaById(CCT);
-        if(!existingEscuela){
-            return res.status(404).json({ error: 'La escuela no existe'});
-        }
-
-        //Actualizar el estatus de la escuela
-        await EscuelaModel.updateEstadoValidacion(CCT, estado_validacion);
-
-        return res.status(200).json({ message: 'Estatus actualizado exitosamente'});
-    }catch(error){
-        console.error('Error al validar escuela:', error);
-        return res.status(500).json({error: 'Error interno del servidor'});
-    }
-})
-
-// Endpoint para validar/rechazar aliados
-app.put('/api/admin/aliados/:idAliado/validar', async (req, res) => {
-    try{
-        const idAliado = req.params.idAliado;
-        const {estado_validacion} = req.body;
-
-        //Validar que no sea un campo vacío
-        if(!estado_validacion){
-            return res.status(400).json({ error: 'El campo estatus es obligatorio',
-             });
-        }
-
-        //Validar que el aliado exista
-        const existingAliado = await AliadoModel.getAliadoById(idAliado);
-        if(!existingAliado){
-            return res.status(404).json({ error: 'El aliado no existe'});
-        }
-
-        //Actualizar el estatus del aliado
-        await AliadoModel.updateEstadoValidacion(idAliado, estado_validacion);
-
-        return res.status(200).json({ message: 'Estatus actualizado exitosamente'});
-    }catch(error){
-        console.error('Error al validar aliado:', error);
-        return res.status(500).json({error: 'Error interno del servidor'});
-    }
-})
-
-//Endpoint mostrar lista de administradores
-app.get('/api/admin/catalogo/administradores', async (req, res) =>{
-    try{
-        const admins = await AdminModel.getAllAdmins();
-        return res.status(200).json({ message: 'Lista de administradores', admins});
-    }catch(error){
-        console.error('Error al obtener lista de administradores:', error);
-        return res.status(500).json({error: 'Error interno del servidor'});
-    }
-})
-
-//============ENPOINTS DE REPRESENTANTE============//
-//Endpoint de registro de representante
-app.post('/api/registro/representante_escuela', async (req, res) => { 
-    try{
-        const {nombre, correo_electronico, contrasena, numero_telefonico, CCT, rol, anios_experiencia, proximo_a_jubilarse, cambio_zona} = req.body;
-    
-        //Validar que no sean campos vacíos
-        if(!nombre || !correo_electronico || !contrasena || !numero_telefonico ||  !CCT || !rol || !anios_experiencia) {//No consideramos proximo_a_jubilarse y cambio_zona como obligatorios ya que están en false por default
-            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
-        }
-
-        // Verificar que la escuela exista
-        const escuela = await knex('Escuela').where({ CCT }).first();
-        if (!escuela) {
-        return res.status(404).json({ error: 'CCT de escuela no válido' });
-        }
-
-        //Validar que el correo no exista
-        const existingMail = await RepresentanteModel.getRepresentanteByMail(correo_electronico);
-        if(existingMail){
-            return res.status(409).json({ error: 'El correo ya está registrado'});
-        }
-
-        //Validar que el teléfono no exista
-        const existingPhone = await RepresentanteModel.getRepresentanteByPhone(numero_telefonico);
-        if(existingPhone){
-            return res.status(409).json({ error: 'El número de teléfono ya está registrado'});
-        }
-
-        //Registrar al Representante
-        await RepresentanteModel.createRepresentante({ nombre, correo_electronico, contrasena, numero_telefonico, CCT, rol, anios_experiencia, proximo_a_jubilarse, cambio_zona });
-
-        return res.status(201).json({ message: 'Representante registrado exitosamente', 
-            credenciales: {
-                correo_electronico,
-                contrasena // ⚠️ Solo para propósitos de desarrollo (evita retornarla en producción)
-              }
-
-         });
-    }catch(error){
-        console.error('Error al registrar representante:', error);
-        return res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
-
-//Endpoint de inicio de sesión de
-app.post('/api/login/representante_escuela', async (req, res) => {
-    try{
-        const {correo_electronico, contrasena} = req.body;
-
-        //Validar que no sean campos vacíos
-        if(!correo_electronico || !contrasena) {
-            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
-        }
-
-        //Validar que el correo exista en la BD
-        const existingMail = await RepresentanteModel.getRepresentanteByMail(correo_electronico);
-        if(!existingMail){
-            return res.status(404).json({ error: 'El correo no está registrado'});
-        }
-
-        //Validar que la contraseña sea correcta
-        
-        if(existingMail.contrasena !== contrasena){
-            return res.status(400).json({ error: 'La contraseña es incorrecta'});
-        }
-    
-        return res.status(200).json({ message: 'Inicio de sesión exitoso'});
-    }catch(error){
-        console.error('Error al iniciar sesión:', error);
-        return res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
-
-//Endpoint de actualizar datos del Representante
-app.put('/api/representantes/:idRepresentante', async (req, res) => {
-    try{
-        const idRepresentante = req.params.idRepresentante;
-        const {nuevoNombre, nuevoCorreo, nuevaContrasena, nuevoTelefono, nuevoRol, nuevoAnios, nuevoProximo, nuevoCambio} = req.body;
-        //Validar que existe el representante
-        const existingRepre = await RepresentanteModel.getRepresentanteById(idRepresentante);
-        if(!existingRepre){
-            return res.status(404).json({ error: 'Representante no encontrado'});
-        }
-
-
-        //Actualizaremos nombre
-        if(nuevoNombre){
-            await RepresentanteModel.updateRepresentanteName(idRepresentante, nuevoNombre); // Actualiza "nombre"
-        }
-
-        if(nuevoCorreo){
-            const newEmail = await RepresentanteModel.getRepresentanteByMail(nuevoCorreo);
-            if(newEmail?.idRepresentante !== undefined && newEmail.idRepresentante !== idRepresentante){
-                return res.status(400).json({ error: 'El correo ya está registrado'});
-            }
-            await RepresentanteModel.updateRepresentanteMail(idRepresentante, nuevoCorreo); // Actualiza "correo_electronico"
-        }
-
-        if (nuevaContrasena) {
-            await RepresentanteModel.updateRepresentantePass(idRepresentante, nuevaContrasena);
-          }
-
-        if(nuevoTelefono){
-            await RepresentanteModel.updateRepresentantePhone(idRepresentante, nuevoTelefono); // Actualiza "numero_telefonico"
-        }
-
-        if(nuevoRol){
-            await RepresentanteModel.updateRepresentanteRol(idRepresentante, nuevoRol); // Actualiza "rol"
-        }
-
-        if(nuevoAnios){
-            await RepresentanteModel.updateRepresentanteanios_experiencia(idRepresentante, nuevoAnios); // Actualiza "anios_experiencia"
-        }
-
-        if(nuevoProximo === 'boolean'){
-            await RepresentanteModel.updateRepresentanteproximo_a_jubilarse(idRepresentante, nuevoProximo); // Actualiza "proximo_a_jubilarse"
-        }
-
-        if(nuevoCambio === 'boolean'){
-            await RepresentanteModel.updateRepresentanteCambio_zona(idRepresentante, nuevoCambio); // Actualiza "cambio_zona"
-        }
-
-        return res.status(200).json({ message: 'Representante actualizado exitosamente',
-            representante: {
-                id: parseInt(idRepresentante),
-                nombre: nuevoNombre,
-                correo: nuevoCorreo,
-                contrasena: nuevaContrasena,
-                telefono: nuevoTelefono,
-                años_servicio: nuevoAnios,
-                proximo_a_jubilarse: nuevoProximo,
-                cambio_zona: nuevoCambio,
-                rol: nuevoRol
-              }
-
-         });
-    }catch(error){
-        console.error('Error al actualizar representante:', error);
-        return res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
-
-//Enpoint para enviar un email para restablecer la constraseña del Representante
-app.post('/api/representantes/recuperar-contrasena', async (req, res) => { 
-    try{
-        const {correo_electronico} = req.body;
-
-        //Validar que no sea un campo vacío
-        if(!correo_electronico){
-            return res.status(400).json({error: 'El campo correo es obligatorio'});
-        }
-
-        //Validar que el correo exista en la base de datos
-        const existingMail = await RepresentanteModel.getRepresentanteByMail(correo_electronico);
-        if(!existingMail){
-            return res.status(404).json({ error: 'Correo no registrado'});
-        }
-
-        const contrasenaOriginal = representante.contrasena;
-
-    // Configurar el transporte de correo
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
-
-    // Enviar el correo
-    await transporter.sendMail({
-      from: `"Mi Escuela Primero" <${process.env.EMAIL_USER}>`,
-      to: repr_correo,
-      subject: 'Recuperación de contraseña - Mi Escuela Primero',
-      html: `
-        <h3>Hola ${representante.nombre},</h3>
-        <p>Recibiste este correo porque solicitaste recuperar tu contraseña como representante escolar.</p>
-        <p><strong>Correo registrado:</strong> ${repr_correo}</p>
-        <p><strong>Contraseña registrada:</strong> ${contrasenaOriginal}</p>
-        <br>
-        <p>Te recomendamos actualizar tu contraseña desde tu perfil una vez que inicies sesión.</p>
-      `
-    });
-
-        //Enviar un email para restablecer la contraseña
-        return res.status(200).json({ message: 'Correo de recuperación enviado (revisa tu bandeja)'});
-    }catch(error){
-        console.error('Error al enviar correo para restablecer contraseña:', error);
-        return res.status(500).json({error: 'Error al enviar el correo'});
-    }
-});
 
 //============ENPOINTS DE ESCUELA============//
 //Endpoint de registro de escuela
@@ -1526,9 +1076,144 @@ if (existingFirma && existingFirma.length > 0) {
 
 
 //============ENPOINTS DE CRONOGRAMA============//
+//Endpoint para crear el cronograma
+app.post('/api/cronogramas/mensuales', async (req, res) => {
+    // Crear los cronogramas mensuales 
+    const { fecha_inicio, fecha_fin } = req.body;
+    try{
+        // Validar que las fechas sean proporcionadas
+        if (!fecha_inicio || !fecha_fin) {
+            return res.status(400).json({ error: 'Las fechas de inicio y fin son obligatorias' });
+        }
 
+        //Crear los cronogramas para los siguientes meses
+        const cronogramas = await CronogramaModel.createCronograma(fecha_inicio, fecha_fin);
+    return res.status(201).json({ message: 'Cronogramas mensuales creados exitosamente', cronogramas });
+
+    }catch(error){
+        console.error('Error al crear cronogramas mensuales:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+    
+});
+// Endpoint para mostrar información del cronograma
 
 //============ENPOINTS DE ACTIVIDAD============//
+//Endpoint para crear la actividad
+app.post('/api/cronogramas/:idCronograma/actividades', async (req, res) => {
+    const { idCronograma } = req.params;
+    const { nombre, fecha_inicio, tipo, fecha_fin, estatus, descripcion } = req.body;
+
+    try {
+        // Validar que no sean campos vacíos
+        if (!nombre || !fecha_inicio || !tipo || !fecha_fin || !descripcion) {
+            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+        }
+
+        // Validar que el cronograma exista en la base de datos
+        const existingCronograma = await CronogramaModel.getCronogramaById(idCronograma);
+        if (!existingCronograma) {
+            return res.status(404).json({ error: 'El cronograma no existe' });
+        }
+
+        // Registrar la actividad en la base de datos
+        const actividad = await ActividadModel.createActividad({ idCronograma, nombre, fecha_inicio, tipo, fecha_fin, estatus });
+
+        return res.status(201).json({ message: 'Actividad registrada exitosamente',
+            actividad: {
+                idActividad: actividad.idActividad,
+                nombre,
+                fecha_inicio,
+                fecha_fin,
+                estatus
+            }
+         });
+    } catch (error) {
+        console.error('Error al registrar actividad:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+
+})
+
+//Endpoint para editar estatus de la actividad (pendiente, en proceso y finalizada)
+app.put('/api/actividades/:idActividad', async(req, res) => {
+    const {idActividad} = req.params;
+    const {estatus} = req.body;
+
+    try{
+        // Validar que el estatus sea proporcionado
+        if (!estatus) {
+            return res.status(400).json({ error: 'El campo estatus es obligatorio' });
+        }
+
+        // Validar que la actividad exista en la base de datos
+        const existingActividad = await ActividadModel.getActividadById(idActividad);
+        if (!existingActividad) {
+            return res.status(404).json({ error: 'La actividad no existe' });
+        }
+
+        // Actualizar el estatus de la actividad
+        await ActividadModel.updateActividad(idActividad, { estatus });
+        
+        return res.status(200).json({
+            message: 'Estatus de la actividad actualizado exitosamente',
+            actividad: { idActividad, estatus }
+        });
+
+    }catch(error){
+        console.error('Error al actualizar el estatus de la actividad:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+
+    }
+})
+//Endpoint para mostrar actividades por cronograma
+app.get('/api/cronogramas/:idCronograma/actividades', async (req, res) => {
+    const {idCronograma} = req.params;
+
+    try{
+         // Validar que el cronograma exista en la base de datos
+         const existingCronograma = await CronogramaModel.getCronogramaById(idCronograma);
+         if (!existingCronograma) {
+             return res.status(404).json({ error: 'El cronograma no existe' });
+         }
+
+         // Obtener todas las actividades asociadas al cronograma
+        const actividades = await ActividadModel.getActividadesByCronogramaId(idCronograma);
+
+        // Validar si no hay actividades registradas
+        if (actividades.length === 0) {
+            return res.status(404).json({ error: 'No se encontraron actividades para este cronograma' });
+        }
+
+        // Formatear las actividades para la respuesta en JSON
+        const formattedActividades = actividades.map((actividad) => ({
+            idActividad: actividad.idActividad,
+            nombre: actividad.nombre,
+            tipo: actividad.tipo,
+            estatus: actividad.estatus,
+            fecha_inicio: actividad.fecha_inicio,
+            fecha_fin: actividad.fecha_fin,
+            descripcion: actividad.descripcion
+        }));
+
+        return res.status(200).json({
+            message: 'Actividades obtenidas exitosamente',
+            cronograma: {
+                idCronograma: existingCronograma.idCronograma,
+                fecha_inicio: existingCronograma.fecha_inicio,
+                fecha_fin: existingCronograma.fecha_fin
+            },
+            actividades: formattedActividades
+        }); 
+
+    }catch(error){
+        console.error('Error al obtener actividades por cronograma:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+
+    }
+    
+});
+
 
 //============ENPOINTS DE CHAT============//
 
@@ -1573,6 +1258,7 @@ app.post('/api/aliado/:idAliado/apoyaEscuela/:CCT', async (req, res) => {
     }
 });
 
+// Endpoint para mostrar la lista de matches
 
 //============ENPOINTS DE PERSONA_MORAL============//
 
