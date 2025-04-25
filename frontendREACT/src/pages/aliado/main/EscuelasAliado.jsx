@@ -1,130 +1,118 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './EscuelasAliado.module.css';
 
 const EscuelasAliado = () => {
+  const [escuelas, setEscuelas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [debugInfo, setDebugInfo] = useState(null);
+
+  useEffect(() => {
+    const fetchEscuelas = async () => {
+      try {
+        setLoading(true);
+        
+        const response = await fetch('http://localhost:1000/api/escuelas/');
+        
+        const responseText = await response.text();
+        
+        let data;
+        try {
+          data = JSON.parse(responseText);
+        } catch (parseError) {
+          setDebugInfo({ status: response.status, text: responseText });
+          throw new Error(`Failed to parse response: ${parseError.message}`);
+        }
+        
+        if (!response.ok) {
+          setDebugInfo({ status: response.status, data });
+          throw new Error(`Error: ${response.status}`);
+        }
+        
+        setEscuelas(data.escuelas || []);
+      } catch (error) {
+        setError('No se pudieron cargar las escuelas. Por favor, intente nuevamente más tarde.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEscuelas();
+  }, []);
+
+  if (loading) {
+    return <div className={styles.loadingContainer}>Cargando escuelas...</div>;
+  }
+
   return (
     <div className={styles.escuelasContainer}>
-      <div className={styles.escuelasGrid}>
-        <div className={styles.escuelaCard}>
-          <h2>Escuela Primaria Juan Escutia</h2>
-          <div className={styles.infoGroup}>
-            <label>CCT:</label>
-            <p>14DPR3856K</p>
-          </div>
-          <div className={styles.infoGroup}>
-            <label>Nivel Educativo:</label>
-            <p>Primaria</p>
-          </div>
-          <div className={styles.direccionGroup}>
-            <label>Dirección:</label>
-            <div className={styles.direccionDetails}>
-              <p>Calle: Revolución</p>
-              <p>Número: 234</p>
-              <p>Colonia: Centro</p>
-              <p>Municipio: Guadalajara</p>
-            </div>
-          </div>
-          <div className={styles.infoGroup}>
-            <label>Número de estudiantes:</label>
-            <p>450</p>
-          </div>
-          <div className={styles.descripcionGroup}>
-            <label>Descripción:</label>
-            <p>Escuela primaria pública con programas especiales de arte y deporte. Participante activa en programas de mejora educativa.</p>
-          </div>
-          <button className={styles.contactarBtn}>Ofrecer Apoyo</button>
+      {error && (
+        <div className={styles.errorContainer}>
+          <p>{error}</p>
+          {debugInfo && (
+            <details>
+              <summary>Información de depuración</summary>
+              <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
+            </details>
+          )}
         </div>
-
-        <div className={styles.escuelaCard}>
-          <h2>Primaria y Preescolar Miguel Hidalgo</h2>
-          <div className={styles.infoGroup}>
-            <label>CCT:</label>
-            <p>14DST0015Z</p>
-          </div>
-          <div className={styles.infoGroup}>
-            <label>Nivel Educativo:</label>
-            <p>Preescolar y Primaria</p>
-          </div>
-          <div className={styles.direccionGroup}>
-            <label>Dirección:</label>
-            <div className={styles.direccionDetails}>
-              <p>Calle: López Mateos</p>
-              <p>Número: 1250</p>
-              <p>Colonia: Chapalita</p>
-              <p>Municipio: Zapopan</p>
+      )}
+      
+      {!error && escuelas.length === 0 ? (
+        <div className={styles.noEscuelas}>No hay escuelas disponibles</div>
+      ) : (
+        <div className={styles.escuelasGrid}>
+          {escuelas.map((escuela) => (
+            <div key={escuela.CCT} className={styles.escuelaCard}>
+              <h2>{escuela.nombre}</h2>
+              <div className={styles.infoGroup}>
+                <label>CCT:</label>
+                <p>{escuela.CCT}</p>
+              </div>
+              <div className={styles.infoGroup}>
+                <label>Nivel Educativo:</label>
+                <p>{escuela.nivel_educativo}</p>
+              </div>
+              <div className={styles.direccionGroup}>
+                <label>Dirección:</label>
+                <div className={styles.direccionDetails}>
+                  <p>Calle: {escuela.direccion.calle}</p>
+                  <p>Número: {escuela.direccion.numero}</p>
+                  <p>Colonia: {escuela.direccion.colonia}</p>
+                  <p>Municipio: {escuela.direccion.municipio}</p>
+                </div>
+              </div>
+              <div className={styles.infoGroup}>
+                <label>Número de estudiantes:</label>
+                <p>{escuela.numero_alumnos}</p>
+              </div>
+              {escuela.descripcion && (
+                <div className={styles.descripcionGroup}>
+                  <label>Descripción:</label>
+                  <p>{escuela.descripcion}</p>
+                </div>
+              )}
+              
+              {/* Representantes section */}
+              {escuela.representantes && escuela.representantes.length > 0 && (
+                <div className={styles.representantesGroup}>
+                  <label>Representantes:</label>
+                  <div className={styles.representantesList}>
+                    {escuela.representantes.map((representante, index) => (
+                      <div key={`${escuela.CCT}-rep-${index}`} className={styles.representanteItem}>
+                        <p><strong>Nombre:</strong> {representante.nombre}</p>
+                        <p><strong>Correo:</strong> {representante.correo_electronico}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <button className={styles.contactarBtn}>Ofrecer Apoyo</button>
             </div>
-          </div>
-          <div className={styles.infoGroup}>
-            <label>Número de estudiantes:</label>
-            <p>680</p>
-          </div>
-          <div className={styles.descripcionGroup}>
-            <label>Descripción:</label>
-            <p>Escuela preescolar y primaria con más de 50 años de experiencia en la educación.</p>
-          </div>
-          <button className={styles.contactarBtn}>Ofrecer Apoyo</button>
+          ))}
         </div>
-
-        <div className={styles.escuelaCard}>
-          <h2>Primaria Benito Juárez</h2>
-          <div className={styles.infoGroup}>
-            <label>CCT:</label>
-            <p>14DPR3242Y</p>
-          </div>
-          <div className={styles.infoGroup}>
-            <label>Nivel Educativo:</label>
-            <p>Primaria</p>
-          </div>
-          <div className={styles.direccionGroup}>
-            <label>Dirección:</label>
-            <div className={styles.direccionDetails}>
-              <p>Calle: Hidalgo</p>
-              <p>Número: 789</p>
-              <p>Colonia: Santa Teresita</p>
-              <p>Municipio: Guadalajara</p>
-            </div>
-          </div>
-          <div className={styles.infoGroup}>
-            <label>Número de estudiantes:</label>
-            <p>380</p>
-          </div>
-          <div className={styles.descripcionGroup}>
-            <label>Descripción:</label>
-            <p>Escuela con enfoque en desarrollo integral y programas de inclusión educativa.</p>
-          </div>
-          <button className={styles.contactarBtn}>Ofrecer Apoyo</button>
-        </div>
-
-        <div className={styles.escuelaCard}>
-          <h2>Jardín de Niños México</h2>
-          <div className={styles.infoGroup}>
-            <label>CCT:</label>
-            <p>14DES0089X</p>
-          </div>
-          <div className={styles.infoGroup}>
-            <label>Nivel Educativo:</label>
-            <p>Preescolar</p>
-          </div>
-          <div className={styles.direccionGroup}>
-            <label>Dirección:</label>
-            <div className={styles.direccionDetails}>
-              <p>Calle: Federalismo</p>
-              <p>Número: 456</p>
-              <p>Colonia: Moderna</p>
-              <p>Municipio: Guadalajara</p>
-            </div>
-          </div>
-          <div className={styles.infoGroup}>
-            <label>Número de estudiantes:</label>
-            <p>520</p>
-          </div>
-          <div className={styles.descripcionGroup}>
-            <label>Descripción:</label>
-            <p>Jardín de Niños México es un jardín de niños con programas de arte y deporte.</p>
-          </div>
-          <button className={styles.contactarBtn}>Ofrecer Apoyo</button>
-        </div>
-      </div>
+      )}
     </div>
   );
 };

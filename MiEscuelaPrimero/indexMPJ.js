@@ -462,6 +462,78 @@ app.post('/api/registroEscuela', async (req, res) => {
     }
 });
 
+//Endpoint para obtener todas las escuelas
+app.get('/api/escuelas/', async (req, res) => {
+    try{
+        // Llamar a la función del modelo para obtener las escuelas
+        const escuelas = await EscuelaModel.getAllEscuelas();
+
+        // Validar si no hay resultados
+        if (!escuelas || escuelas.length === 0) {
+            return res.status(404).json({ error: "No se encontraron escuelas" });
+        }
+
+        // Agrupar escuelas por CCT y acumular representantes
+        const escuelasMap = new Map();
+
+        try {
+            escuelas.forEach(escuela => {
+                const cct = escuela.CCT;
+                
+                if (!escuelasMap.has(cct)) {
+                    // Primera vez que vemos esta escuela
+                    const escuelaData = {
+                        CCT: cct,
+                        nombre: escuela.nombre,
+                        descripcion: escuela.descripcion || null,
+                        direccion: {
+                            calle: escuela.calle,
+                            numero: escuela.numero,
+                            colonia: escuela.colonia,
+                            municipio: escuela.municipio
+                        },
+                        nivel_educativo: escuela.nivel_educativo,
+                        numero_alumnos: escuela.numero_estudiantes,
+                        representantes: []
+                    };
+                    
+                    // Añadir representante si existe
+                    if (escuela.representante_nombre) {
+                        escuelaData.representantes.push({
+                            nombre: escuela.representante_nombre,
+                            correo_electronico: escuela.representante_correo
+                        });
+                    }
+                    
+                    escuelasMap.set(cct, escuelaData);
+                } else {
+                    // Si ya existe la escuela y hay un representante nuevo, lo añadimos
+                    const escuelaExistente = escuelasMap.get(cct);
+                    
+                    if (escuela.representante_nombre && 
+                        !escuelaExistente.representantes.some(r => 
+                            r.correo_electronico === escuela.representante_correo)) {
+                        
+                        escuelaExistente.representantes.push({
+                            nombre: escuela.representante_nombre,
+                            correo_electronico: escuela.representante_correo
+                        });
+                    }
+                }
+            });
+
+            // Convertir el Map a un array
+            const formattedEscuelas = Array.from(escuelasMap.values());
+
+            return res.status(200).json({ escuelas: formattedEscuelas });
+        } catch (processingError) {
+            return res.status(500).json({ error: "Error procesando datos de escuelas", details: processingError.message });
+        }
+    } catch (error) {
+        return res.status(500).json({ error: "Error interno del servidor", details: error.message });
+    }
+});
+
 //Endpoint para obtener la escuela por su CCT (UTILIZAMOS LA QUERY-STRING)
 app.get('/api/escuela/:CCT', async (req, res) => {
     try{
@@ -680,6 +752,44 @@ app.post('/api/loginAliado', async (req, res) => {
     }
 });
 
+//Endpoint para obtener todos los aliados
+app.get('/api/aliados', async (req, res) => {
+    try{
+        //Obtener todos los aliados de la tabla
+        const aliados = await AliadoModel.getAllAliados();
+        
+        //Validar si no hay resultados
+        if(!aliados || aliados.length === 0){
+            return res.status(404).json({error: 'No se encontraron aliados registrados'});
+        }
+
+        //Formatear los resultados adaptándose a la estructura real de la base de datos
+        const formattedAliados = aliados.map((aliado) => {
+            // Create a base object with fields that are likely to exist
+            const formattedAliado = {
+                idAliado: aliado.idAliado,
+                nombre: aliado.nombre || 'Aliado sin nombre',
+                correo: aliado.correo_electronico,
+                descripcion: aliado.descripcion,
+                direccion: {
+                    calle: aliado.calle || '',
+                    numero: aliado.numero || '',
+                    colonia: aliado.colonia || '',
+                    municipio: aliado.municipio || ''
+                },
+                institucion: aliado.institucion || '',
+                sector: aliado.sector || ''
+            };
+            
+            return formattedAliado;
+        });
+
+        return res.status(200).json({message: "Aliados obtenidos exitosamente", aliados: formattedAliados});
+
+    } catch(error){
+        return res.status(500).json({error: 'Error interno del servidor', details: error.message});
+    }
+})
 //Endpoint para ver el catálogo de aliados por institución (UTILIZAMOS QUERY-STRING)
 app.get('/api/aliadoInst/:institucion', async (req, res) => {
     try{
