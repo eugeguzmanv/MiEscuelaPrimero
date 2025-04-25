@@ -1259,6 +1259,41 @@ app.post('/api/aliado/:idAliado/apoyaEscuela/:CCT', async (req, res) => {
 });
 
 // Endpoint para mostrar la lista de matches
+app.get('/api/matches/', async (req, res) =>{
+    try{
+        // Obtener los matches con información de las escuelas y aliados
+        const matches = await AliadoApoyaEscuelaModel.getAllMatches();
+
+        if(!matches || matches.length === 0){
+            return res.status(404).json({error: 'No se encontraron matches registrados'});
+        }
+
+        // Mostrar los matches en el json de forma estructurada
+        const formattedMatches = matches.map((match) => ({
+
+            idMatch: match.idMatch,
+            aliado: {
+            idAliado: match.idAliado,
+            nombre: match.nombre_aliado,
+            correo: match.correo_aliado,
+            institucion: match.aliado_institucion,
+            categoria_apoyo: match.categoria_apoyo
+        },
+        escuela: {
+            CCT: match.CCT,
+            nombre: match.nombre_escuela,
+            municipio: match.municipio,
+            nivel_educativo: match.nivel_educativo
+        }
+        }));
+        return res.status(200).json({message: 'Matches obtenidos exitosamente', matches: formattedMatches});
+
+    }catch(error){
+        console.error('Error al obtener la lista de matches:', error);
+        return res.status(500).json({error: 'Error interno del servidor'});
+
+    }
+});
 
 //============ENPOINTS DE PERSONA_MORAL============//
 
