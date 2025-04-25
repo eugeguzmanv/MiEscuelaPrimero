@@ -17,6 +17,80 @@ const ConstanciaFiscalModel = require('./models/mConstancia_Fiscal.js');
 app.use(express.static('public')); //Para poder servir archivos estáticos como HTML, CSS, JS, etc.
 app.use(express.json()); //Para poder recibir datos en formato JSON en el body de las peticiones
 
+//.............................. NUEVOS ENDPOINTS .....................................
+//...........................ENDPOINT PARA MOSTRAR TODAS LAS ESCUELAS.........................
+app.get('/api/escuelas/', async (req, res) => {
+    try{
+        // Llamar a la función del modelo para obtener las escuelas
+        const escuelas = await EscuelaModel.getAllEscuelas();
+
+        // Validar si no hay resultados
+        if (escuelas.length === 0) {
+            return res.status(404).json({ error: "No se encontraron escuelas" });
+        }
+
+        //Transforma los resultados de la BD a un formato más estructurado (sólo sirvió para verfiicar que sí se funcionaba en postman)
+        const formattedEscuelas = escuelas.map(escuela => ({
+            CCT: escuela.CCT,
+            nombre: escuela.nombre,
+            direccion: {
+                calle: escuela.calle,
+                numero: escuela.numero,
+                colonia: escuela.colonia,
+                municipio: escuela.municipio
+            },
+            nivel_educativo: escuela.nivel_educativo,
+            numero_alumnos: escuela.numero_estudiantes,
+            representante: {
+                nombre: escuela.representante_nombre || null,
+                correo_electronico: escuela.representante_correo || null
+            }
+        }));
+
+        res.status(200).json({ escuelas: formattedEscuelas });
+
+    } catch (error) {
+        console.error('Error en /api/escuelas:', error);
+        res.status(500).json({ error: "Error interno del servidor" });
+    }
+});
+
+// ..................... ENDPOINT PARA MOSTRAR TODOS LOS ALIADOS ................................
+app.get('/api/aliados', async (req, res) => {
+    try{
+        //Obtener todos los aliados de la tabla
+        const aliados = await AliadoModel.getAllAliados();
+        //Validar si no hay resultados
+        if(!aliados || aliados.length === 0){
+            return res.status(404).json({error: 'No se encontraron aliados registrados'});
+        }
+
+        //Formatear los resultados (para hacer la prueba en postman de que sí se muestran)
+        const formattedAliados = aliados.map((aliado) => ({
+            idAliado: aliado.idAliado,
+            nombre: aliado.nombre,
+            tipo: aliado.tipo,
+            correo: aliado.correo_electronico,
+            categoria_apoyo: aliado.categoria_apoyo,
+            descripcion: aliado.descripcion,
+            direccion: {
+                calle: aliado.calle,
+                numero: aliado.numero,
+                colonia: aliado.colonia,
+                municipio: aliado.municipio
+            },
+            institucion: aliado.institucion,
+            sector: sector
+        }));
+
+        return res.status(200).json({message: "Aliados obtenidos exitosamente", aliados: formattedAliados});
+
+    }catch(error){
+        console.error('Error al obtener aliados:', error);
+        return res.status(500).json({error: 'Error interno del servidor'});
+    }
+});
+
 
 
 //============ENPOINTS DE ADMINISTRADOR============//
