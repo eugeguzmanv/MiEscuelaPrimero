@@ -2,15 +2,13 @@ exports.up = function(knex) {
     return knex.schema.createTable('Necesidad', (table) => {
         table.increments('idNecesidad').primary();
         table.integer('ponderacion').notNullable(); //int, puede ser string (revisar tipo de dato a ingresar)
-        table.enu('estatus', ['pendiente', 'validado', 'rechazado']).defaultTo('pendiente');;
+        table.enu('estatus', ['Pendiente', 'Validado', 'Rechazado']).defaultTo('Pendiente');
         table.string('descripcion').notNullable();
         table.string('categoria').notNullable();
-        table.integer('idDiagnostico').notNullable(); //int, puede ser string (revisar tipo de dato a ingresar)
-        table.foreign('idDiagnostico').references('idDiagnostico').inTable('Diagnostico'); //Foreing key de la tabla Diagnostico, (Revisar tipo de dato a ingresar)
+        table.string('CCT').notNullable();
+        table.foreign('CCT').references('CCT').inTable('Escuela');
     });
 };
-
-getNecesidadBy
 exports.down = function(knex) {
     return knex.schema.dropTable('Necesidad');
 };

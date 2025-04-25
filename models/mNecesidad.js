@@ -2,22 +2,18 @@
 const db = require('../db.js');
 
 const NecesidadModel = {
-    createNecesidad: (necesidadData) => db('Necesidad').insert({
-        idDiagnostico: necesidadData.idDiagnostico,
-        ponderacion: necesidadData.ponderacion,
-        descripcion: necesidadData.descripcion,
-        estatus: necesidadData.estatus,
-        categoria: necesidadData.categoria
-    }, ['idNecesidad']), // Regresa el idNecesidad generado para usarlo en el index
-    getNecesidadesByDiagnosticoId: (idDiagnostico, columna = 'ponderacion') =>
-        db('Necesidad').where({ idDiagnostico }).orderBy(columna, 'desc'), // Obtener todas las necesidades por idDiagnostico y en orden de prioridad
-
+    createNecesidad: async ({CCT, categoria, descripcion, ponderacion, estatus}) => {
+        // Es una desestructuración 
+        const [necesidad] = await db('Necesidad').insert({CCT, categoria, descripcion, ponderacion, estatus}).returning(['idNecesidad', 'categoria', 'descripcion', 'ponderacion', 'estatus']);
+        return necesidad;
+      
+    }, 
+   getNecesidadesByEscuela: async (CCT) => {
+    return db('Necesidad').where({CCT}).select('idNecesidad', 'categoria', 'descripcion', 'ponderacion', 'estatus');
+   },
     updateEstatus: (idNecesidad, estatus) =>
         db('Necesidad').where({ idNecesidad }).update({
             estatus: estatus
         }), // Actualizar el estatus de una necesidad por idNecesidad
 }
-
-
-
 module.exports = NecesidadModel;

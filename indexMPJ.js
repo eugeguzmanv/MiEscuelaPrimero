@@ -808,8 +808,8 @@ app.get('/api/aliados', async (req, res) => {
 
 //============ENPOINTS DE NECESIDAD============//
 // Endpoint para registrar necesidad en el diagnóstico
-app.post('/api/escuelas/:CCT/diagnosticos/:idDiagnostico/necesidades', async (req, res) => {
-    const { CCT, idDiagnostico } = req.params;
+app.post('/api/escuelas/:CCT/necesidades', async (req, res) => {
+    const { CCT} = req.params;
     const { categoria, descripcion, ponderacion, estatus } = req.body;
 
     try {
@@ -817,31 +817,23 @@ app.post('/api/escuelas/:CCT/diagnosticos/:idDiagnostico/necesidades', async (re
             return res.status(400).json({ error: 'Todos los campos son obligatorios' });
         }
 
-        //Validar rango de ponderación de la necesidad
-        if(typeof ponderacion !== 'number' || ponderacion < 1 || ponderacion > 10){
-            return res.status(400).json({ error: 'La ponderación debe ser un número entre 1 y 10' });
-        }
         // Verificar que la escuela exista
-        const escuela = await db('Escuela').where({ CCT }).first();
-        if (!escuela) {
-            return res.status(404).json({ error: 'Escuela no encontrada' });
+        const escuela = await EscuelaModel.getEscuelaById(CCT);
+        if(!escuela){
+            return res.status(404).json({error: 'Escuela no encontrada'});  
         }
 
-        // Verificar que el diagnóstico exista
-        const diagnostico = await db('Diagnostico').where({ idDiagnostico, CCT, estado: 'activo' }).first();
-        if (!diagnostico) {
-            return res.status(404).json({ error: 'Diagnóstico no encontrado' });
-        }
-
-        // Registrar la necesidad en la base de datos
-        const [necesidad] = await NecesidadModel.createNecesidad({ idDiagnostico, ponderacion, descripcion,  estatus, categoria});
-
+        //Registrar la necesidad
+        const necesidad = await NecesidadModel.createNecesidad({CCT, categoria, descripcion, ponderacion, estatus});
+        
+        
         return res.status(201).json({ message: 'Necesidad registrada exitosamente', 
             necesidad: {
                 idNecesidad: necesidad.idNecesidad,
                 categoria,
                 descripcion,
-                ponderacion
+                ponderacion,
+                estatus
             }
          });
     } catch (error) {
@@ -852,20 +844,25 @@ app.post('/api/escuelas/:CCT/diagnosticos/:idDiagnostico/necesidades', async (re
 
 });
 
-//Endpoint para mostrar necesidades de un diagnóstico
-app.get('/api/admin/diagnosticos/:idDiagnostico/necesidades', async (req, res) => {
-    const { idDiagnostico } = req.params;
+//Endpoint para mostrar necesidades por escuela
+app.get('/api/escuelas/:CCT/necesidades', async (req, res) => {
+    const { CCT } = req.params;
     try {
-        // Verificar que el diagnóstico exista
-        const diagnostico = await db('Diagnostico').where({ idDiagnostico }).first();
-        if (!diagnostico) {
-            return res.status(404).json({ error: 'Diagnóstico no encontrado' });
+
+        //Verificar que la escuela exista
+        const escuela = await EscuelaModel.getEscuelaById(CCT);
+        if(!escuela){
+            return res.status(404).json({error: 'La escuela no existe'});
         }
+        // Obtener las necesidades asociadas a la escuela
+        const necesidades = await NecesidadModel.getNecesidadesByEscuela(CCT);
 
-        // Obtener las necesidades del diagnóstico
-        const necesidades = await NecesidadModel.getNecesidadesByDiagnosticoId(idDiagnostico);
-
-        return res.status(200).json({ necesidades });
+        //Validar si no hay necesidades registradas
+        if(!necesidades || necesidades.length === 0){
+            return res.status(404).json({error: 'No se encontraron necesidades para esta escuela'});
+        }
+        return res.status(200).json({
+            message: 'Necesidad obtenidas exitosamente', necesidades});
     }
     catch (error) {
         console.error('Error al obtener necesidades:', error);
@@ -873,6 +870,8 @@ app.get('/api/admin/diagnosticos/:idDiagnostico/necesidades', async (req, res) =
     }
 
 });
+
+
 
 //============ENPOINTS DE DIAGNOSTICO============//
 //Endpoint para generar diagnóstico en la base de datos
