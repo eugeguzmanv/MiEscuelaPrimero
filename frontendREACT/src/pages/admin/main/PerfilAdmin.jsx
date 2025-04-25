@@ -137,7 +137,7 @@ const PerfilAdmin = () => {
           <p>{adminData.correo || 'No disponible'}</p>
         </div>
         <div className={styles.infoItem}>
-          
+            
         </div>
       </div>
       <button className={styles.editButton} onClick={handleEditClick}>Editar información</button>
