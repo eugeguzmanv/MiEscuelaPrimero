@@ -218,80 +218,19 @@ app.get('/api/escuela/sector_escolar/:sector_escolar', async (req, res) => {
     }
 });
 
-//...........................ENDPOINT TODO EN UNO PARA MOSTRAR ESCUELAS CON QUERY STRING Y USANDO FILTROS.........................
+//...........................ENDPOINT TODO EN UNO PARA MOSTRAR ESCUELAS.........................
 app.get('/api/escuelas/', async (req, res) => {
-    //Validar que al menos un filtro esté presente
-    const { nombre, municipio, nivel_educativo, sector_escolar, zona_escolar } = req.query;
-    // Sirve para configurar la conexión para conectarse a la base de datos de Postgres
-    const client = new Client({
-        user: 'postgres',
-        host: 'localhost',
-        database: 'mpj_db',
-        password: '230504',
-        port: 5432,
-    });
-    try {
-        await client.connect();
-        //Construir query dinámica
-        let query = `
-            SELECT 
-                e."CCT", 
-                e."nombre",
-                e."modalidad", 
-                e."nivel_educativo",
-                e."sector_escolar",
-                e."sostenimiento",
-                e."zona_escolar",
-                e."calle", 
-                e."numero",
-                e."colonia",
-                e."municipio",
-                e."control_administrativo",
-                e."numero_estudiantes",
-                e."estado_validacion",
-                e."comentario_admin",
-                r."nombre" AS representante_nombre,
-                r."correo_electronico" AS representante_correo
-            FROM "Escuela" e
-            LEFT JOIN "Representante" r ON e."CCT" = r."CCT"
-            WHERE 1=1
-        `;
-        
-        const params = []; //Crear un array para los parámetros de la query
-        let index = 1; //Contador para los parámetros de la consulta
-        // Añadir filtros dinámicos
-        if (nombre) {
-            query += ` AND e.nombre ILIKE $${index++}`;
-            params.push(`%${nombre}%`);//Búsqueda o coincidencias con el nombre
-        }
-        if (municipio) {
-            query += ` AND e.municipio = $${index++}`;
-            params.push(municipio);
-        }
-        if (nivel_educativo) {
-            query += ` AND e.nivel_educativo = $${index++}`;
-            params.push(nivel_educativo);
-        }
-        if (sector_escolar) {
-            query += ` AND e.sector_escolar = $${index++}`;
-            params.push(sector_escolar);
-        }
-        if (zona_escolar) {
-            query += ` AND e.zona_escolar = $${index++}`;
-            params.push(zona_escolar);
-        }
-        
+    try{
+        // Llamar a la función del modelo para obtener las escuelas
+        const escuelas = await EscuelaModel.getAllEscuelas();
 
-        //Ejecutar consulta
-        const result = await client.query(query, params);
-
-        //Formatear respuesta (dar formato a los resultados)
-        if (result.rows.length === 0) {
+        // Validar si no hay resultados
+        if (escuelas.length === 0) {
             return res.status(404).json({ error: "No se encontraron escuelas" });
         }
 
-        //Transforma los resultados de la BD a un formato más estructurado
-        const formattedEscuelas = result.rows.map(escuela => ({
+        //Transforma los resultados de la BD a un formato más estructurado (sólo sirvió para verfiicar que sí se funcionaba en postman)
+        const formattedEscuelas = escuelas.map(escuela => ({
             CCT: escuela.CCT,
             nombre: escuela.nombre,
             direccion: {
@@ -313,8 +252,6 @@ app.get('/api/escuelas/', async (req, res) => {
     } catch (error) {
         console.error('Error en /api/escuelas:', error);
         res.status(500).json({ error: "Error interno del servidor" });
-    }finally {
-        await client.end(); // Asegura cerrar la conexión
     }
 });
 
@@ -726,19 +663,8 @@ app.post('/api/restablecerAliadoContrasena', async (req, res) => {
 
 //...........................ENDPOINT TODO EN UNO PARA MOSTRAR ALIADOS CON QUERY STRING Y USANDO FILTROS.........................
 app.get('/api/catalogo/aliados', async (req, res) => {
-    const { categoria_apoyo, municipio, tipo_persona } = req.query;
-
-    const client = new Client({
-        user: 'postgres',
-        host: 'localhost',
-        database: 'mpj_db',
-        password: '230504',
-        port: 5432,
-    });
-
+    
     try {
-        await client.connect();
-
         let query = `
             SELECT 
                 a."idAliado",
@@ -844,6 +770,41 @@ WHERE 1=1
     }
 });
 
+// Endpoint para mostrar todos los aliados
+app.get('/api/aliados', async (req, res) => {
+    try{
+        //Obtener todos los aliados de la tabla
+        const aliados = await AliadoModel.getAllAliados();
+        //Validar si no hay resultados
+        if(!aliados || aliados.length === 0){
+            return res.status(404).json({error: 'No se encontraron aliados registrados'});
+        }
+
+        //Formatear los resultados (para hacer la prueba en postman de que sí se muestran)
+        const formattedAliados = aliados.map((aliado) => ({
+            idAliado: aliado.idAliado,
+            nombre: aliado.nombre,
+            tipo: aliado.tipo,
+            correo: aliado.correo_electronico,
+            categoria_apoyo: aliado.categoria_apoyo,
+            descripcion: aliado.descripcion,
+            direccion: {
+                calle: aliado.calle,
+                numero: aliado.numero,
+                colonia: aliado.colonia,
+                municipio: aliado.municipio
+            },
+            institucion: aliado.institucion,
+            sector: sector
+        }));
+
+        return res.status(200).json({message: "Aliados obtenidos exitosamente", aliados: formattedAliados});
+
+    }catch(error){
+        console.error('Error al obtener aliados:', error);
+        return res.status(500).json({error: 'Error interno del servidor'});
+    }
+})
 
 //============ENPOINTS DE NECESIDAD============//
 // Endpoint para registrar necesidad en el diagnóstico
