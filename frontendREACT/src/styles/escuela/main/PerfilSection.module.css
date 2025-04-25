@@ -1,0 +1,52 @@
+.loadingContainer {
+  padding: 20px;
+  text-align: center;
+  font-size: 16px;
+  color: #666;
+}
+
+.errorContainer {
+  padding: 20px;
+  text-align: center;
+  color: #721c24;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+.sectionSubtitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2C8B3F;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  padding-left: 5px;
+  border-left: 4px solid #009933;
+}
+
+.representanteCard {
+  margin-bottom: 25px;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.representanteCard h4 {
+  color: #2C8B3F;
+  margin-top: 0;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.emptyState {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  margin-bottom: 20px;
+} 

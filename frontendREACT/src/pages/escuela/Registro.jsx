@@ -1,14 +1,81 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Header';
 import styles from '../../styles/Registro.module.css';
 
 const Registro = () => {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [formData, setFormData] = useState({
+    nombre: '',
+    clave: '',
+    nivel: '',
+    modalidad: 'general',
+    control: 'Público',
+    sostenimiento: 'estatal',
+    zona: '',
+    sector: '',
+    calle: '',
+    numero: '',
+    colonia: '',
+    municipio: '',
+    numero_estudiantes: '',
+    descripcion: ''
+  });
 
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    navigate('/escuela/main');
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const response = await fetch('http://localhost:1000/api/registroEscuela', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          CCT: formData.clave,
+          nombre: formData.nombre,
+          modalidad: formData.modalidad,
+          nivel_educativo: formData.nivel,
+          sector_escolar: formData.sector,
+          sostenimiento: formData.sostenimiento,
+          zona_escolar: formData.zona,
+          calle: formData.calle,
+          colonia: formData.colonia,
+          municipio: formData.municipio,
+          numero: formData.numero,
+          descripcion: formData.descripcion,
+          control_administrativo: formData.control,
+          numero_estudiantes: parseInt(formData.numero_estudiantes),
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        // If successful, navigate to the representative registration page with the school CCT
+        navigate(`/escuela/anadir-representante?cct=${formData.clave}`);
+      } else {
+        // Handle error from API
+        setError(data.error || 'Error al registrar la escuela');
+      }
+    } catch (error) {
+      console.error('Error al registrar escuela:', error);
+      setError('Error de conexión. Por favor, inténtalo de nuevo más tarde.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -16,6 +83,18 @@ const Registro = () => {
       <Header />
       <div className={styles.formContainer}>
         <h2 className={styles.formTitle}>Registro de Escuela</h2>
+        {error && (
+          <div style={{ 
+            color: 'white', 
+            backgroundColor: '#d9534f', 
+            padding: '10px', 
+            borderRadius: '5px',
+            marginBottom: '20px',
+            textAlign: 'center'
+          }}>
+            {error}
+          </div>
+        )}
         <form className={styles.form} onSubmit={handleSubmit}>
           <label className={styles.label} htmlFor="nombre">
             Nombre de la escuela:
@@ -25,6 +104,9 @@ const Registro = () => {
             type="text"
             id="nombre"
             name="nombre"
+            value={formData.nombre}
+            onChange={handleChange}
+            required
           />
 
           <label className={styles.label} htmlFor="clave">
@@ -35,6 +117,9 @@ const Registro = () => {
             type="text"
             id="clave"
             name="clave"
+            value={formData.clave}
+            onChange={handleChange}
+            required
           />
 
           <label className={styles.label} htmlFor="nivel">
@@ -45,12 +130,22 @@ const Registro = () => {
             type="text"
             id="nivel"
             name="nivel"
+            value={formData.nivel}
+            onChange={handleChange}
+            required
           />
 
           <label className={styles.label} htmlFor="modalidad">
             Modalidad:
           </label>
-          <select className={styles.select} id="modalidad" name="modalidad">
+          <select 
+            className={styles.select} 
+            id="modalidad" 
+            name="modalidad"
+            value={formData.modalidad}
+            onChange={handleChange}
+            required
+          >
             <option value="general">General</option>
             <option value="comunitaria">Comunitaria</option>
             <option value="indigena">Indígena</option>
@@ -72,7 +167,14 @@ const Registro = () => {
           <label className={styles.label} htmlFor="sostenimiento">
             Sostenimiento:
           </label>
-          <select className={styles.select} id="sostenimiento" name="sostenimiento">
+          <select 
+            className={styles.select} 
+            id="sostenimiento" 
+            name="sostenimiento"
+            value={formData.sostenimiento}
+            onChange={handleChange}
+            required
+          >
             <option value="estatal">Estatal</option>
             <option value="federal">Federal</option>
           </select>
@@ -85,6 +187,9 @@ const Registro = () => {
             type="text"
             id="zona"
             name="zona"
+            value={formData.zona}
+            onChange={handleChange}
+            required
           />
 
           <label className={styles.label} htmlFor="sector">
@@ -95,6 +200,9 @@ const Registro = () => {
             type="text"
             id="sector"
             name="sector"
+            value={formData.sector}
+            onChange={handleChange}
+            required
           />
 
           <label className={styles.label} htmlFor="direccion">
@@ -106,6 +214,9 @@ const Registro = () => {
             id="calle"
             name="calle"
             placeholder="Calle"
+            value={formData.calle}
+            onChange={handleChange}
+            required
           />
           <input
             className={styles.input}
@@ -113,6 +224,9 @@ const Registro = () => {
             id="numero"
             name="numero"
             placeholder="Número"
+            value={formData.numero}
+            onChange={handleChange}
+            required
           />
           <input
             className={styles.input}
@@ -120,6 +234,9 @@ const Registro = () => {
             id="colonia"
             name="colonia"
             placeholder="Colonia"
+            value={formData.colonia}
+            onChange={handleChange}
+            required
           />
           <input
             className={styles.input}
@@ -127,6 +244,9 @@ const Registro = () => {
             id="municipio"
             name="municipio"
             placeholder="Municipio"
+            value={formData.municipio}
+            onChange={handleChange}
+            required
           />
 
           <label className={styles.label} htmlFor="numero_estudiantes">
@@ -139,6 +259,9 @@ const Registro = () => {
             name="numero_estudiantes"
             min="0"
             placeholder="Ejemplo: 500"
+            value={formData.numero_estudiantes}
+            onChange={handleChange}
+            required
           />
 
           <label className={styles.label} htmlFor="descripcion">
@@ -150,48 +273,17 @@ const Registro = () => {
             name="descripcion"
             rows="4"
             placeholder="Escribe una breve descripción de la escuela..."
+            value={formData.descripcion}
+            onChange={handleChange}
+            required
           />
 
-          <h2 className={styles.representanteTitle}>
-            Información del representante
-          </h2>
-          
-          <label className={styles.label} htmlFor="rol_representante">
-            Rol del representante:
-          </label>
-          <textarea
-            className={styles.textarea}
-            id="rol_representante"
-            name="rol_representante"
-            rows="4"
-            placeholder="Indica el rol del representante dentro de la Escuela"
-          />
-
-          <label className={styles.label} htmlFor="telefono_representante">
-            Número de teléfono:
-          </label>
-          <input
-            className={styles.input}
-            type="tel"
-            id="telefono_representante"
-            name="telefono_representante"
-            placeholder="Ejemplo: 3312345678"
-          />
-
-          <label className={styles.label} htmlFor="anios_servicio">
-            Años de servicio:
-          </label>
-          <input
-            className={styles.input}
-            type="number"
-            id="anios_servicio"
-            name="anios_servicio"
-            min="0"
-            placeholder="Ejemplo: 10"
-          />
-
-          <button className={styles.button} type="submit">
-            Registrar
+          <button 
+            className={styles.button} 
+            type="submit"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Registrando...' : 'Continuar'}
           </button>
         </form>
       </div>

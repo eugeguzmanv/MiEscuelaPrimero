@@ -20,7 +20,7 @@ const OpcionesRegistro = () => {
           </button>
           <button
             className={styles.button}
-            onClick={() => navigate('/escuela/anadir-representante')}
+            onClick={() => navigate('/escuela/anadir-nuevo-representante')}
           >
             Mi escuela ya está registrada
           </button>

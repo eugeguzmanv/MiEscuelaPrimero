@@ -1,16 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Header';
 import styles from '../../styles/Registro.module.css';
 
-const AnadirRepresentante = () => {
+const AnadirNuevoRepresentante = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  
-  // Get CCT from URL query parameter
-  const queryParams = new URLSearchParams(location.search);
-  const cct = queryParams.get('cct');
-  
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
@@ -23,16 +17,8 @@ const AnadirRepresentante = () => {
     anios_experiencia: '',
     proximo_a_jubilarse: 'no',
     cambio_zona: 'no',
-    CCT: cct || '', // Use CCT from URL or empty string
+    CCT: '', // Empty string for manual entry
   });
-
-  // Redirect if no CCT is provided
-  useEffect(() => {
-    if (!cct) {
-      alert('Error: No se proporcionó el CCT de la escuela');
-      navigate('/escuela/registro');
-    }
-  }, [cct, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -51,10 +37,40 @@ const AnadirRepresentante = () => {
       return;
     }
     
+    // Validate CCT is provided and properly formatted
+    const trimmedCCT = formData.CCT.trim();
+    if (!trimmedCCT) {
+      setError('El CCT de la escuela es obligatorio');
+      return;
+    }
+    
+    // Update CCT with trimmed value
+    setFormData(prev => ({
+      ...prev,
+      CCT: trimmedCCT
+    }));
+    
     setIsLoading(true);
     setError(null);
     
     try {
+      // First verify if the school exists with this CCT
+      console.log("Verifying school with CCT:", trimmedCCT);
+      
+      const verifyResponse = await fetch(`http://localhost:1000/api/escuela/${trimmedCCT}`);
+      
+      if (!verifyResponse.ok) {
+        setError('No se encontró una escuela con este CCT. Verifique que el CCT sea correcto.');
+        setIsLoading(false);
+        return;
+      }
+      
+      // School exists, proceed with representative registration
+      console.log("School found, proceeding with representative registration");
+      
+      // Log CCT for debugging
+      console.log("Submitting representative with CCT:", trimmedCCT);
+      
       const response = await fetch('http://localhost:1000/api/registroRepre', {
         method: 'POST',
         headers: {
@@ -69,7 +85,7 @@ const AnadirRepresentante = () => {
           anios_experiencia: parseInt(formData.anios_experiencia),
           proximo_a_jubilarse: formData.proximo_a_jubilarse === 'si',
           cambio_zona: formData.cambio_zona === 'si',
-          CCT: formData.CCT,
+          CCT: trimmedCCT,
         }),
       });
 
@@ -77,7 +93,7 @@ const AnadirRepresentante = () => {
       
       if (response.ok) {
         // If successful, navigate to the main page with CCT parameter
-        navigate(`/escuela/main?cct=${formData.CCT}`);
+        navigate(`/escuela/main?cct=${trimmedCCT}`);
       } else {
         // Handle error from API
         setError(data.error || 'Error al registrar representante');
@@ -94,7 +110,7 @@ const AnadirRepresentante = () => {
     <div className={styles.registroContainer}>
       <Header />
       <div className={styles.formContainer}>
-        <h2 className={styles.formTitle}>Registro de Representante</h2>
+        <h2 className={styles.formTitle}>Vincular Representante a Escuela Existente</h2>
         {error && (
           <div style={{ 
             color: 'white', 
@@ -108,6 +124,20 @@ const AnadirRepresentante = () => {
           </div>
         )}
         <form className={styles.form} onSubmit={handleSubmit}>
+          <label className={styles.label} htmlFor="CCT">
+            Clave de Centro de Trabajo (CCT) de la escuela:
+          </label>
+          <input
+            className={styles.input}
+            type="text"
+            id="CCT"
+            name="CCT"
+            value={formData.CCT}
+            onChange={handleChange}
+            placeholder="Ingrese el CCT de la escuela existente"
+            required
+          />
+
           <label className={styles.label} htmlFor="nombre">
             Nombre completo:
           </label>
@@ -238,7 +268,7 @@ const AnadirRepresentante = () => {
             type="submit"
             disabled={isLoading}
           >
-            {isLoading ? 'Registrando...' : 'Registrar'}
+            {isLoading ? 'Registrando...' : 'Vincular Representante'}
           </button>
         </form>
       </div>
@@ -246,4 +276,4 @@ const AnadirRepresentante = () => {
   );
 };
 
-export default AnadirRepresentante; 
+export default AnadirNuevoRepresentante; 

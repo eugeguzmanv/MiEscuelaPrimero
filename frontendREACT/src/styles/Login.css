@@ -93,4 +93,93 @@ button {
 
 button:hover {
   background-color: #026322;
+}
+
+/* Add styles for the profile selector */
+.profile-selector {
+  margin-bottom: 20px;
+  border: 1px solid #e0e0e0;
+  padding: 15px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.profile-label {
+  color: #009933;
+  font-weight: 600;
+  margin-bottom: 10px;
+  font-size: 17px;
+}
+
+.profile-options {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.profile-option {
+  display: flex;
+  align-items: center;
+  margin-right: 15px;
+  margin-bottom: 5px;
+}
+
+.profile-option input[type="radio"] {
+  margin-right: 8px;
+  cursor: pointer;
+  accent-color: #009933;
+}
+
+.radio-label {
+  display: inline;
+  margin-bottom: 0;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* Add styles for the profile selector dropdown */
+.profile-dropdown {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.profile-dropdown label {
+  margin-right: 10px;
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+.profile-select {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: white;
+  font-family: 'Montserrat', sans-serif;
+  color: #333;
+  cursor: pointer;
+  font-size: 15px;
+  width: auto;
+  outline: none;
+}
+
+.profile-select:focus {
+  border-color: #009933;
+  box-shadow: 0 0 4px rgba(0, 153, 51, 0.3);
+}
+
+.profile-select option {
+  padding: 8px;
+}
+
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  border: 1px solid #f5c6cb;
+  text-align: center;
+  font-size: 14px;
 } 
