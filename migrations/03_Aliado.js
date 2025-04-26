@@ -6,6 +6,7 @@ exports.up = function(knex) {
         table.string('nombre').notNullable();
         table.string('contraseña').notNullable();
         table.string('CURP').notNullable();
+        table,string('numero_telefonico').notNullable();
         table.string('institucion').notNullable();
         table.string('sector').notNullable();
         table.string('calle').notNullable();

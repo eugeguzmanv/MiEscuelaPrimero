@@ -38,7 +38,20 @@ const AliadoModel = {
     getAliadoByMunicipio: (municipio) => db('Aliado').where({ municipio }).first(), //Regresa UN solo objeto gracias al .first()
     getAliadoByCURP: (CURP) => db('Aliado').where({ CURP }).first(), //Regresa UN solo objeto gracias al .first()
     getAliadoByInstitucion: (institucion) => db('Aliado').where({ institucion }).first(), //Regresa UN solo objeto gracias al .first()
-    getAllAliados: () => db('Aliado').select('*'), //Regresa todos los objetos de la tabla en un array gracias al .select('*')
+    getAllAliados: async () => {
+      return db('Aliado').select(
+        'nombre',
+        'tipo',
+        'correo_electronico',
+        'categoria_apoyo',
+        'calle',
+        'numero',
+        'colonia',
+        'municipio',
+        'institucion',
+        'sector'
+      );
+    }
 };
 
 module.exports = AliadoModel; //Exportamos el modelo para usarlo en otros archivos

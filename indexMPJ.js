@@ -13,6 +13,11 @@ const AliadoModel = require('./models/mAliado.js');
 const PersonaMoralModel = require('./models/mPersona_Moral.js');
 const EscrituraPublicaModel = require('./models/mEscritura_Publica.js');
 const ConstanciaFiscalModel = require('./models/mConstancia_Fiscal.js');
+const AliadoApoyaEscuelaModel = require('./models/mAliado_Apoya_Escuela.js')
+const CronogramaModel = require('./models/mCronograma.js')
+const NecesidadModel = require('./models/mNecesidad.js')
+const ApoyoModel = require('./models/mApoyo.js');
+const Aliado_Brinda_ApoyoModel = require('./models/mAliado_Brinda_Apoyo.js');
 
 app.use(express.static('public')); //Para poder servir archivos estáticos como HTML, CSS, JS, etc.
 app.use(express.json()); //Para poder recibir datos en formato JSON en el body de las peticiones
@@ -29,7 +34,7 @@ app.get('/api/escuelas/', async (req, res) => {
             return res.status(404).json({ error: "No se encontraron escuelas" });
         }
 
-        //Transforma los resultados de la BD a un formato más estructurado (sólo sirvió para verfiicar que sí se funcionaba en postman)
+        //Transforma los resultados de la BD a un formato más estructurado (sólo sirvió para verfiicar que sí funcionaba en postman)
         const formattedEscuelas = escuelas.map(escuela => ({
             CCT: escuela.CCT,
             nombre: escuela.nombre,
@@ -52,6 +57,32 @@ app.get('/api/escuelas/', async (req, res) => {
     } catch (error) {
         console.error('Error en /api/escuelas:', error);
         res.status(500).json({ error: "Error interno del servidor" });
+    }
+});
+
+app.put('/necesidades/:idNecesidad/validar', async (req, res) =>{
+    try{
+        const idNecesidad = req.params.idNecesidad;
+        const {estatus} = req.body;
+
+        //Validar que no sea un campo vacío
+        if(!estatus){
+            return res.status(400).json({ error: 'El campo estatus es obligatorio' });
+        }
+
+        //Validar que la necesidad exista
+        const existingNecesidad = await NecesidadModel.getNecesidadesByDiagnosticoId(idNecesidad);
+        if(!existingNecesidad){
+            return res.status(404).json({ error: 'La necesidad no existe'});
+        }
+
+        //Actualizar el estatus de la necesidad
+        await NecesidadModel.updateEstatus(idNecesidad, estatus);
+
+        return res.status(200).json({ message: 'Estatus actualizado exitosamente'});
+    }catch(error){
+        console.error('Error al validar necesidad:', error);
+        return res.status(500).json({error: 'Error interno del servidor'});
     }
 });
 
@@ -90,6 +121,648 @@ app.get('/api/aliados', async (req, res) => {
         return res.status(500).json({error: 'Error interno del servidor'});
     }
 });
+
+//============ENPOINTS DE NECESIDAD============//
+// Endpoint para registrar necesidad 
+app.post('/api/escuelas/:CCT/necesidades', async (req, res) => {
+    const { CCT} = req.params;
+    const { categoria, descripcion, ponderacion, estatus } = req.body;
+
+    try {
+        if(!categoria || !descripcion || ponderacion === undefined) {
+            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+        }
+
+        // Verificar que la escuela exista
+        const escuela = await EscuelaModel.getEscuelaById(CCT);
+        if(!escuela){
+            return res.status(404).json({error: 'Escuela no encontrada'});  
+        }
+
+        //Registrar la necesidad
+        const necesidad = await NecesidadModel.createNecesidad({CCT, categoria, descripcion, ponderacion, estatus});
+        
+        
+        return res.status(201).json({ message: 'Necesidad registrada exitosamente', 
+            necesidad: {
+                idNecesidad: necesidad.idNecesidad,
+                categoria,
+                descripcion,
+                ponderacion,
+                estatus
+            }
+         });
+    } catch (error) {
+        console.error('Error al registrar necesidad:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+
+
+});
+
+//Endpoint para mostrar necesidades por escuela
+app.get('/api/escuelas/:CCT/necesidades', async (req, res) => {
+    const { CCT } = req.params;
+    try {
+
+        //Verificar que la escuela exista
+        const escuela = await EscuelaModel.getEscuelaById(CCT);
+        if(!escuela){
+            return res.status(404).json({error: 'La escuela no existe'});
+        }
+        // Obtener las necesidades asociadas a la escuela
+        const necesidades = await NecesidadModel.getNecesidadesByEscuela(CCT);
+
+        //Validar si no hay necesidades registradas
+        if(!necesidades || necesidades.length === 0){
+            return res.status(404).json({error: 'No se encontraron necesidades para esta escuela'});
+        }
+        return res.status(200).json({
+            message: 'Necesidad obtenidas exitosamente', necesidades});
+    }
+    catch (error) {
+        console.error('Error al obtener necesidades:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+
+});
+
+//Endpoint para validar/rechazar necesidades
+
+//============ENPOINTS DE APOYO============//
+//Endpoint para cargar apoyo
+app.post('/api/aliados/:idAliado/apoyos', async (req, res) => {
+    const { idAliado } = req.params;
+    const { tipo, estatus, categoria, descripcion} = req.body;
+
+    try {
+        // Validar que no sean campos vacíos
+        if (!tipo || !categoria || !descripcion) {
+            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+        }
+
+        // Validar que el aliado exista en la base de datos
+        const existingAliado = await AliadoModel.getAliadoById(idAliado);
+        if (!existingAliado) {
+            return res.status(404).json({ error: 'El aliado no existe' });
+        }
+
+        // Registrar el apoyo en la base de datos
+        const apoyo = await ApoyoModel.createApoyo({ idAliado, tipo, estatus, categoria, descripcion });
+
+        // Registrar la relación con la tabla Aliado_Brinda_Apoyo
+        await Aliado_Brinda_ApoyoModel.createAliadoBrindaApoyo({ idAliado, idApoyo: apoyo.idApoyo });
+
+        return res.status(201).json({ message: 'Apoyo registrado exitosamente',
+            apoyo: {
+                idAliado,
+                tipo,
+                estatus,
+                categoria,
+                descripcion
+            }
+         });
+    } catch (error) {
+        console.error('Error al registrar apoyo:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+//Endpoint para mostrar todas las necesidades y en orden de ponderacion
+app.get('/api/necesidades', async (req, res) => {
+    try {
+        // Obtener todas las necesidades de la base de datos
+        const necesidades = await NecesidadModel.getAllNecesidades();
+
+        // Validar si no hay necesidades registradas
+        if (!necesidades || necesidades.length === 0) {
+            return res.status(404).json({ error: 'No se encontraron necesidades registradas' });
+        }
+
+        return res.status(200).json({
+            message: 'Necesidades obtenidas exitosamente',
+            necesidades
+        });
+    } catch (error) {
+        console.error('Error al obtener todas las necesidades:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+//Endpoint para editar el apoyo para próximos ciclos escolares
+app.put('/api/aliados/:idAliado/apoyos/:idApoyo', async (req, res) =>{
+    const {idAliado, idApoyo} = req.params;
+    const {tipo, estatus, categoria, descripcion} = req.body;
+
+    try{
+
+        // Validar que el aliado exista en la base de datos
+        const existingAliado = await AliadoModel.getAliadoById(idAliado);
+        if (!existingAliado) {
+            return res.status(404).json({ error: 'El aliado no existe' });
+        }
+
+        // Validar que el apoyo exista en la base de datos
+        const existingApoyo = await ApoyoModel.getApoyoById(idApoyo);
+        if (!existingApoyo) {
+            return res.status(404).json({ error: 'El apoyo no existe' });
+        }
+
+       // Actualizar los campos enviados en la solicitud
+       if (tipo) await ApoyoModel.updateApoyoTipo(idApoyo, tipo);
+       if (estatus) await ApoyoModel.updateApoyoEstatus(idApoyo, estatus);
+       if (categoria) await ApoyoModel.updateApoyoCategoria(idApoyo, categoria);
+       if (descripcion) await ApoyoModel.updateApoyoDescripcion(idApoyo, descripcion);
+
+        return res.status(200).json({
+            message: 'Información actualizada exitosamente'
+          });
+    }catch(error){
+        console.error('Error al editar apoyo:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+
+});
+
+//Mostrar los apoyos por aliado
+app.get('/api/aliados/:idAliado/apoyos', async (req, res) => {
+    const { idAliado } = req.params;
+
+    try {
+        // Validar que el aliado exista
+        const aliado = await AliadoModel.getAliadoById(idAliado);
+        if (!aliado) {
+            return res.status(404).json({ error: 'El aliado no existe' });
+        }
+
+        // Obtener los apoyos brindados por el aliado
+        const apoyos = await Aliado_Brinda_ApoyoModel.getApoyosByAliado(idAliado);
+
+        if (!apoyos || apoyos.length === 0) {
+            return res.status(404).json({ error: 'No se encontraron apoyos brindados por este aliado' });
+        }
+
+        return res.status(200).json({
+            message: 'Apoyos obtenidos exitosamente',
+            apoyos
+        });
+    } catch (error) {
+        console.error('Error al obtener los apoyos del aliado:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+//Mostrar los apoyos pendientes de validar
+app.get('/api/apoyos/pendientes', async (req, res) => {
+    try {
+        // Obtener los apoyos con estatus "Pendiente"
+        const apoyosPendientes = await ApoyoModel.getApoyosPendientes();
+
+        // Validar si no hay apoyos pendientes
+        if (!apoyosPendientes || apoyosPendientes.length === 0) {
+            return res.status(404).json({ error: 'No se encontraron apoyos pendientes de validar' });
+        }
+
+        return res.status(200).json({
+            message: 'Apoyos pendientes obtenidos exitosamente',
+            apoyos: apoyosPendientes
+        });
+    } catch (error) {
+        console.error('Error al obtener apoyos pendientes:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Endpoint para registrar en la tabla Aliado_Brinda_Apoyo
+app.post('/api/aliados/:idAliado/brindaApoyo/:idApoyo', async (req, res) => {
+    const { idAliado, idApoyo } = req.params;
+
+    try {
+        // Validar que el aliado exista en la base de datos
+        const existingAliado = await AliadoModel.getAliadoById(idAliado);
+        if (!existingAliado) {
+            return res.status(404).json({ error: 'El aliado no existe' });
+        }
+
+        // Validar que el apoyo exista en la base de datos
+        const existingApoyo = await ApoyoModel.getApoyoById(idApoyo);
+        if (!existingApoyo) {
+            return res.status(404).json({ error: 'El apoyo no existe' });
+        }
+
+        // Validar que no exista una relación duplicada
+        const existingRelation = await Aliado_Brinda_ApoyoModel.getRelationByAliadoAndApoyo(idAliado, idApoyo);
+        if (existingRelation) {
+            return res.status(409).json({ error: 'La relación ya existe' });
+        }
+
+        // Registrar la relación en la tabla Aliado_Brinda_Apoyo
+        await Aliado_Brinda_ApoyoModel.createAliadoBrindaApoyo({ idAliado, idApoyo });
+
+        return res.status(201).json({ message: 'Relación registrada exitosamente' });
+    } catch (error) {
+        console.error('Error al registrar la relación:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Endpoint para validar/rechazar un apoyo
+app.put('/apoyos/:idApoyo/validar', async (req, res) => {
+    try {
+        const idApoyo = req.params.idApoyo;
+        const { estatus } = req.body;
+
+        // Validar que el campo estatus no esté vacío
+        if (!estatus) {
+            return res.status(400).json({ error: 'El campo estatus es obligatorio' });
+        }
+
+        // Validar que el estatus sea válido (Pendiente, Validado, Rechazado)
+        const estatusValido = ['Pendiente', 'Validado', 'Rechazado'];
+        if (!estatusValido.includes(estatus)) {
+            return res.status(400).json({ error: 'El estatus proporcionado no es válido' });
+        }
+
+        // Validar que el apoyo exista
+        const existingApoyo = await ApoyoModel.getApoyoById(idApoyo);
+        if (!existingApoyo) {
+            return res.status(404).json({ error: 'El apoyo no existe' });
+        }
+
+        // Actualizar el estatus del apoyo
+        await ApoyoModel.updateApoyoEstatus(idApoyo, estatus);
+
+        return res.status(200).json({ message: 'Estatus del apoyo actualizado exitosamente' });
+    } catch (error) {
+        console.error('Error al validar apoyo:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+//.............................. ENDPOINTS PARA EL CONVENIO.............................
+//Endpoint para crear el convenio
+
+app.post('/api/convenios', async (req, res) => {
+    try {
+        const [convenio] = await ConvenioModel.createConvenio();
+        return res.status(201).json({ message: 'Convenio creado exitosamente', convenio });
+    } catch (error) {
+        console.error('Error al registrar convenio:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+//Endpoint para firmar convenio
+app.put('/api/convenios/:idConvenio/firmar', async (req, res) => {
+    const { idConvenio } = req.params;
+    const { idAliado, CCT } = req.body; // Obtener el idAliado y CCT del cuerpo de la solicitud
+
+    try {
+        // Validar que el convenio exista
+        const existingConvenio = await ConvenioModel.getConvenioById(idConvenio);
+        if (!existingConvenio) {
+            return res.status(404).json({ error: 'El convenio no existe' });
+        }
+
+         // Validar que la escuela exista
+         const existingEscuela = await EscuelaModel.getEscuelaById(CCT);
+         if (!existingEscuela) {
+             return res.status(404).json({ error: 'La escuela no existe' });
+         }
+
+        // Validar que el aliado exista
+        const existingAliado = await AliadoModel.getAliadoById(idAliado);
+        if (!existingAliado) {
+            return res.status(404).json({ error: 'El aliado no existe' });
+        }
+
+        // Validar que ya no exista una firma para este match
+        const existingFirma = await FirmarConvenioModel.getFirmasByConvenio(idConvenio, idAliado, CCT);
+if (existingFirma && existingFirma.length > 0) { 
+    return res.status(400).json({ error: 'La firma ya existe para este convenio' });
+}
+
+        // Registrar la firma del convenio 
+        const fecha_firma = new Date();
+        await FirmarConvenioModel.createFirma({ idConvenio, idAliado, CCT, fecha_firma: fecha_firma });
+
+        // Marcar el convenio como firmado
+        await ConvenioModel.markConvenioAsFirmado(idConvenio);
+        
+        return res.status(200).json({ message: 'Convenio firmado exitosamente' });
+    } catch (error) {
+        console.error('Error al firmar convenio:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+//Endpoint para que el administrador revise valide las necesidades
+app.put('/necesidades/:idNecesidad/validar', async (req, res) =>{
+    try{
+        const idNecesidad = req.params.idNecesidad;
+        const {estatus} = req.body;
+
+        //Validar que no sea un campo vacío
+        if(!estatus){
+            return res.status(400).json({ error: 'El campo estatus es obligatorio' });
+        }
+
+        //Validar que la necesidad exista
+        const existingNecesidad = await NecesidadModel.getNecesidadesById(idNecesidad);
+        if(!existingNecesidad){
+            return res.status(404).json({ error: 'La necesidad no existe'});
+        }
+
+        //Actualizar el estatus de la necesidad
+        await NecesidadModel.updateEstatus(idNecesidad, estatus);
+
+        return res.status(200).json({ message: 'Estatus actualizado exitosamente'});
+    }catch(error){
+        console.error('Error al validar necesidad:', error);
+        return res.status(500).json({error: 'Error interno del servidor'});
+    }
+});
+
+//Endpoint para validar/rechazar escuelas
+app.put('/escuelas/:CCT/validar', async (req, res) => {
+    try{
+        const CCT = req.params.CCT;
+        const {estado_validacion} = req.body;
+
+        //Validar que no sea un campo vacío
+        if(!estado_validacion){
+            return res.status(400).json({ error: 'El campo estatus es obligatorio' });
+        }
+
+        //Validar que la escuela exista
+        const existingEscuela = await EscuelaModel.getEscuelaById(CCT);
+        if(!existingEscuela){
+            return res.status(404).json({ error: 'La escuela no existe'});
+        }
+
+        //Actualizar el estatus de la escuela
+        await EscuelaModel.updateEstadoValidacion(CCT, estado_validacion);
+
+        return res.status(200).json({ message: 'Estatus actualizado exitosamente'});
+    }catch(error){
+        console.error('Error al validar escuela:', error);
+        return res.status(500).json({error: 'Error interno del servidor'});
+    }
+})
+
+// Endpoint para validar/rechazar aliados
+app.put('/aliados/:idAliado/validar', async (req, res) => {
+    try{
+        const idAliado = req.params.idAliado;
+        const {estado_validacion} = req.body;
+
+        //Validar que no sea un campo vacío
+        if(!estado_validacion){
+            return res.status(400).json({ error: 'El campo estatus es obligatorio',
+             });
+        }
+
+        //Validar que el aliado exista
+        const existingAliado = await AliadoModel.getAliadoById(idAliado);
+        if(!existingAliado){
+            return res.status(404).json({ error: 'El aliado no existe'});
+        }
+
+        //Actualizar el estatus del aliado
+        await AliadoModel.updateEstadoValidacion(idAliado, estado_validacion);
+
+        return res.status(200).json({ message: 'Estatus actualizado exitosamente'});
+    }catch(error){
+        console.error('Error al validar aliado:', error);
+        return res.status(500).json({error: 'Error interno del servidor'});
+    }
+})
+
+//============ENPOINTS DE CRONOGRAMA============//
+//Endpoint para crear el cronograma
+app.post('/api/cronogramas/mensuales', async (req, res) => {
+    // Crear los cronogramas mensuales 
+    const { fecha_inicio, fecha_fin } = req.body;
+    try{
+        // Validar que las fechas sean proporcionadas
+        if (!fecha_inicio || !fecha_fin) {
+            return res.status(400).json({ error: 'Las fechas de inicio y fin son obligatorias' });
+        }
+
+        //Crear los cronogramas para los siguientes meses
+        const cronogramas = await CronogramaModel.createCronograma(fecha_inicio, fecha_fin);
+    return res.status(201).json({ message: 'Cronogramas mensuales creados exitosamente', cronogramas });
+
+    }catch(error){
+        console.error('Error al crear cronogramas mensuales:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+    
+});
+
+//============ENPOINTS DE ACTIVIDAD============//
+//Endpoint para crear la actividad
+app.post('/api/cronogramas/:idCronograma/actividades', async (req, res) => {
+    const { idCronograma } = req.params;
+    const { nombre, fecha_inicio, tipo, fecha_fin, estatus, descripcion } = req.body;
+
+    try {
+        // Validar que no sean campos vacíos
+        if (!nombre || !fecha_inicio || !tipo || !fecha_fin || !descripcion) {
+            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+        }
+
+        // Validar que el cronograma exista en la base de datos
+        const existingCronograma = await CronogramaModel.getCronogramaById(idCronograma);
+        if (!existingCronograma) {
+            return res.status(404).json({ error: 'El cronograma no existe' });
+        }
+
+        // Registrar la actividad en la base de datos
+        const actividad = await ActividadModel.createActividad({ idCronograma, nombre, fecha_inicio, tipo, fecha_fin, estatus });
+
+        return res.status(201).json({ message: 'Actividad registrada exitosamente',
+            actividad: {
+                idActividad: actividad.idActividad,
+                nombre,
+                fecha_inicio,
+                fecha_fin,
+                estatus
+            }
+         });
+    } catch (error) {
+        console.error('Error al registrar actividad:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+
+});
+
+//Endpoint para editar estatus de la actividad (pendiente, en proceso y finalizada)
+app.put('/api/actividades/:idActividad', async(req, res) => {
+    const {idActividad} = req.params;
+    const {estatus} = req.body;
+
+    try{
+        // Validar que el estatus sea proporcionado
+        if (!estatus) {
+            return res.status(400).json({ error: 'El campo estatus es obligatorio' });
+        }
+
+        // Validar que la actividad exista en la base de datos
+        const existingActividad = await ActividadModel.getActividadById(idActividad);
+        if (!existingActividad) {
+            return res.status(404).json({ error: 'La actividad no existe' });
+        }
+
+        // Actualizar el estatus de la actividad
+        await ActividadModel.updateActividad(idActividad, { estatus });
+        
+        return res.status(200).json({
+            message: 'Estatus de la actividad actualizado exitosamente',
+            actividad: { idActividad, estatus }
+        });
+
+    }catch(error){
+        console.error('Error al actualizar el estatus de la actividad:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+
+    }
+})
+//Endpoint para mostrar actividades por cronograma
+app.get('/api/cronogramas/:idCronograma/actividades', async (req, res) => {
+    const {idCronograma} = req.params;
+
+    try{
+         // Validar que el cronograma exista en la base de datos
+         const existingCronograma = await CronogramaModel.getCronogramaById(idCronograma);
+         if (!existingCronograma) {
+             return res.status(404).json({ error: 'El cronograma no existe' });
+         }
+
+         // Obtener todas las actividades asociadas al cronograma
+        const actividades = await ActividadModel.getActividadesByCronogramaId(idCronograma);
+
+        // Validar si no hay actividades registradas
+        if (actividades.length === 0) {
+            return res.status(404).json({ error: 'No se encontraron actividades para este cronograma' });
+        }
+
+        // Formatear las actividades para la respuesta en JSON para ver si funcionaba en postman
+        const formattedActividades = actividades.map((actividad) => ({
+            idActividad: actividad.idActividad,
+            nombre: actividad.nombre,
+            tipo: actividad.tipo,
+            estatus: actividad.estatus,
+            fecha_inicio: actividad.fecha_inicio,
+            fecha_fin: actividad.fecha_fin,
+            descripcion: actividad.descripcion
+        }));
+
+        return res.status(200).json({
+            message: 'Actividades obtenidas exitosamente',
+            cronograma: {
+                idCronograma: existingCronograma.idCronograma,
+                fecha_inicio: existingCronograma.fecha_inicio,
+                fecha_fin: existingCronograma.fecha_fin
+            },
+            actividades: formattedActividades
+        }); 
+
+    }catch(error){
+        console.error('Error al obtener actividades por cronograma:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+
+    }
+    
+});
+
+//============ENPOINTS DE ALIADO_APOYA_ESCUELA============//
+//Endpoint para crear el match entre el aliado y la escuela
+app.post('/api/aliado/:idAliado/apoyaEscuela/:CCT', async (req, res) => {
+
+    const {idAliado, CCT} = req.params;
+
+    try{
+        // Validar que el aliado exista en la base de datos
+        const existingAliado = await AliadoModel.getAliadoById(idAliado);
+        if(!existingAliado){
+            return res.status(404).json({ error: 'El aliado no existe' });
+        }
+
+        // Validar que la escuela exista en la base de datos
+        const existingEscuela = await EscuelaModel.getEscuelaById(CCT);
+        if(!existingEscuela){
+            return res.status(404).json({ error: 'La escuela no existe' });
+        }
+
+        // Validar que no exista un match duplicado
+        const existingMatch = await AliadoApoyaEscuelaModel.getMatchById(idAliado, CCT);
+        if(existingMatch){
+            return res.status(409).json({ error: 'El match ya existe' });
+        }
+
+        // Crear el match entre el aliado y la escuela
+        await AliadoApoyaEscuelaModel.createMatch({ idAliado, CCT });
+
+        return res.status(201).json({ message: 'Match creado exitosamente' });
+    } catch(error){
+        console.error('Error al crear el match:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Endpoint para mostrar la lista de matches
+app.get('/api/matches/', async (req, res) =>{
+    try{
+        // Obtener los matches con información de las escuelas y aliados
+        const matches = await AliadoApoyaEscuelaModel.getAllMatches();
+
+        if(!matches || matches.length === 0){
+            return res.status(404).json({error: 'No se encontraron matches registrados'});
+        }
+
+        // Mostrar los matches en el json de forma estructurada
+        const formattedMatches = matches.reduce((acc, match) => {
+            const key = `${match.escuela_clave}-${match.escuela_nombre}`;
+            if (!acc[key]) {
+                acc[key] = {
+                    escuela: {
+                        clave: match.escuela_clave,
+                        nombre: match.escuela_nombre
+                    },
+                    aliado: {
+                        institucion: match.aliado_institucion,
+                        nombre: match.nombre_aliado,
+                        categoria_apoyo: match.categoria_apoyo
+                    },
+                    necesidades: []
+                };
+            }
+            if (match.idNecesidad) {
+                acc[key].necesidades.push({
+                    idNecesidad: match.idNecesidad,
+                    categoria: match.necesidad_categoria,
+                    descripcion: match.necesidad_descripcion,
+                    ponderacion: match.necesidad_ponderacion,
+                    estatus: match.necesidad_estatus
+                });
+            }
+            return acc;
+        }, {});
+        // Convertir el objeto en un arreglo
+        const response = Object.values(formattedMatches);
+        return res.status(200).json({message: 'Matches obtenidos exitosamente', matches: formattedMatches});
+
+    }catch(error){
+        console.error('Error al obtener la lista de matches:', error);
+        return res.status(500).json({error: 'Error interno del servidor'});
+
+    }
+});
+
+//.....................................................................................................................
+
+
+
+
 
 
 

@@ -2,7 +2,7 @@ exports.up = function(knex) {
     return knex.schema.createTable('Apoyo', (table) => {
         table.increments('idApoyo').primary();
         table.string('tipo').notNullable();
-        table.string('estatus').notNullable();
+        table.enu('estatus', ['Pendiente', 'Validado', 'Rechazado']).defaultTo('Pendiente');
         table.string('categoria').notNullable();
     });
 };
