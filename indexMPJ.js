@@ -768,7 +768,7 @@ app.get('/api/matches/', async (req, res) =>{
 
 //============ENPOINTS DE ADMINISTRADOR============//
 //Endpoint de registro de administrador
-app.post('/api/registroAdmin', async (req, res) => {
+app.post('/api/admin/registro', async (req, res) => {
     try{
         const {nombre, correo_electronico, contrasena} = req.body;
 
@@ -799,7 +799,7 @@ app.post('/api/registroAdmin', async (req, res) => {
 });
 
 //Endpoint de inicio de sesión de administrador
-app.post('/api/loginAdmin', async (req, res) => { 
+app.post('/api/admin/login', async (req, res) => { 
     try{
         const {correo_electronico, contrasena} = req.body;
 
@@ -832,7 +832,7 @@ app.post('/api/loginAdmin', async (req, res) => {
 });
 
 //Endpoint para actualizar datos del administrador
-app.put('/api/actualizarAdmin/:id', async (req, res) => { 
+app.put('/api/admin/actualizar/:id', async (req, res) => { 
     try{
         console.log("Hola desde dentro del try de actualizarAdmin");
         const idAdmin = req.params.id;
@@ -880,8 +880,7 @@ app.put('/api/actualizarAdmin/:id', async (req, res) => {
         }
         if (nuevaContrasena) {
             console.log("Hola desde dentro del if de nuevaContrasena de actualizarAdmin");
-            const hashedPassword = await bcrypt.hash(nuevaContrasena, 10); // Hashear nueva contraseña
-            await AdminModel.updateAdminPass(idAdmin, hashedPassword); // Actualiza "contrasena"
+            await AdminModel.updateAdminPass(idAdmin); // Actualiza "contrasena"
         }
 
         return res.status(200).json({ message: 'Administrador actualizado exitosamente' });
@@ -892,7 +891,7 @@ app.put('/api/actualizarAdmin/:id', async (req, res) => {
 });
 
 //Endpoint para enviar un email para restablecer la contraseña del Administrador
-app.post('/api/restablecerAdminContrasena', async (req, res) => {
+app.post('/api/admin/restablecerContrasena', async (req, res) => {
     try{
         const {correo_electronico} = req.body;
 
@@ -1115,7 +1114,7 @@ app.get('/api/representanteTel/:numero_telefonico', async (req, res) => {
 
 //============ENPOINTS DE ESCUELA============//
 //Endpoint de registro de escuela
-app.post('/api/registroEscuela', async (req, res) => { 
+app.post('/api/escuela/registroEscuela', async (req, res) => { 
     try{
         const {CCT, nombre, modalidad, nivel_educativo, sector_escolar, sostenimiento, zona_escolar, calle, colonia, municipio, numero, descripcion,  control_administrativo, numero_estudiantes} = req.body;
 
