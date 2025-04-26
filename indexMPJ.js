@@ -23,6 +23,16 @@ app.use(express.static('public')); //Para poder servir archivos estáticos como 
 app.use(express.json()); //Para poder recibir datos en formato JSON en el body de las peticiones
 
 //.............................. NUEVOS ENDPOINTS .....................................
+//Endpoint mostrar lista de administradores
+adminRouter.get('/catalogo/administradores', async (req, res) =>{
+    try{
+        const admins = await AdminModel.getAllAdmins();
+        return res.status(200).json({ message: 'Lista de administradores', admins});
+    }catch(error){
+        console.error('Error al obtener lista de administradores:', error);
+        return res.status(500).json({error: 'Error interno del servidor'});
+    }
+});
 //...........................ENDPOINT PARA MOSTRAR TODAS LAS ESCUELAS.........................
 app.get('/api/escuelas/', async (req, res) => {
     try{
