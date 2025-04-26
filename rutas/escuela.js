@@ -172,4 +172,68 @@ escuelaRouter.get('/sector_escolar/:sector_escolar', async (req, res) => {
     }
 });
 
+
+
+
+
+
+// Ruta para obtener todas las escuelas
+escuelaRouter.get('/todas', async (req, res) => {
+    try {
+        const escuelas = await EscuelaModel.getAllEscuelas();
+        if (escuelas.length === 0) {
+            return res.status(404).json({ error: "No se encontraron escuelas" });
+        }
+        const formattedEscuelas = escuelas.map(escuela => ({
+            CCT: escuela.CCT,
+            nombre: escuela.nombre,
+            direccion: {
+                calle: escuela.calle,
+                numero: escuela.numero,
+                colonia: escuela.colonia,
+                municipio: escuela.municipio
+            },
+            nivel_educativo: escuela.nivel_educativo,
+            numero_alumnos: escuela.numero_estudiantes,
+            representante: {
+                nombre: escuela.representante_nombre || null,
+                correo_electronico: escuela.representante_correo || null
+            }
+        }));
+        res.status(200).json({ escuelas: formattedEscuelas });
+    } catch (error) {
+        console.error('Error en /api/escuelas:', error);
+        res.status(500).json({ error: "Error interno del servidor" });
+    }
+});
+
+// Ruta para registrar necesidades de una escuela
+escuelaRouter.post('/necesidades/:CCT', async (req, res) => {
+    const { CCT } = req.params;
+    const { categoria, descripcion, ponderacion, estatus } = req.body;
+    try {
+        if (!categoria || !descripcion || ponderacion === undefined) {
+            return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+        }
+        const escuela = await EscuelaModel.getEscuelaById(CCT);
+        if (!escuela) {
+            return res.status(404).json({ error: 'Escuela no encontrada' });
+        }
+        const necesidad = await NecesidadModel.createNecesidad({ CCT, categoria, descripcion, ponderacion, estatus });
+        return res.status(201).json({
+            message: 'Necesidad registrada exitosamente',
+            necesidad: {
+                idNecesidad: necesidad.idNecesidad,
+                categoria,
+                descripcion,
+                ponderacion,
+                estatus
+            }
+        });
+    } catch (error) {
+        console.error('Error al registrar necesidad:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 module.exports = escuelaRouter; //Exportar el router de la escuela

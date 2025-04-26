@@ -3,7 +3,8 @@
  * @returns { Promise<void> }
  */
 exports.up = function(knex) {
-    table.increments('idFirmar_Convenio').primary(); // id para identificar la firma de convenio
+    return knex.schema.createTable('Firmar_Convenio', (table) => {    
+        table.increments('idFirmar_Convenio').primary(); // id para identificar la firma de convenio
         table.string('CCT').notNullable(); // CCT de la escuela que recibe el apoyo
         table.integer('idConvenio').notNullable(); // id del convenio que se firma
         table.foreign('idConvenio').references('idConvenio').inTable('Convenio'); // Foreing key de la tabla Convenio
@@ -11,7 +12,7 @@ exports.up = function(knex) {
         table.foreign('CCT').references('CCT').inTable('Escuela'); // Foreing key de la tabla Escuela
         table.foreign('idAliado').references('idAliado').inTable('Aliado'); // Foreing key de la tabla Aliado
         table.date('fecha_firma').nullable().defaultTo(knex.fn.now()); // Fecha en la que se firma el convenio, puede ser nula si no ha sido firmado
-
+    });
   
 };
 

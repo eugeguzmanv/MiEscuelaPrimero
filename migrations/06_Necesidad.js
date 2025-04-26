@@ -5,7 +5,7 @@ exports.up = function(knex) {
         table.enu('estatus', ['Pendiente', 'Validado', 'Rechazado']).defaultTo('Pendiente'); // Se registrara como 'Pendiente' en la base de datos
         table.string('descripcion').notNullable();
         table.string('categoria').notNullable();
-        table.integer('CCT').notNullable(); //int, puede ser string (revisar tipo de dato a ingresar)
+        table.string('CCT').notNullable(); //int, puede ser string (revisar tipo de dato a ingresar)
         table.foreign('CCT').references('CCT').inTable('Escuela'); //Foreing key de la tabla Diagnostico, (Revisar tipo de dato a ingresar)
     });
 };

@@ -254,4 +254,39 @@ aliadoRouter.post('/restablecerContrasena', async (req, res) => {
     }
 });
 
+
+
+
+
+
+// Ruta para obtener todos los aliados
+app.get('/todos', async (req, res) => {
+    try {
+        const aliados = await AliadoModel.getAllAliados();
+        if (!aliados || aliados.length === 0) {
+            return res.status(404).json({ error: 'No se encontraron aliados registrados' });
+        }
+        const formattedAliados = aliados.map((aliado) => ({
+            idAliado: aliado.idAliado,
+            nombre: aliado.nombre,
+            tipo: aliado.tipo,
+            correo: aliado.correo_electronico,
+            categoria_apoyo: aliado.categoria_apoyo,
+            descripcion: aliado.descripcion,
+            direccion: {
+                calle: aliado.calle,
+                numero: aliado.numero,
+                colonia: aliado.colonia,
+                municipio: aliado.municipio
+            },
+            institucion: aliado.institucion,
+            sector: aliado.sector
+        }));
+        return res.status(200).json({ message: "Aliados obtenidos exitosamente", aliados: formattedAliados });
+    } catch (error) {
+        console.error('Error al obtener aliados:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 module.exports = aliadoRouter;

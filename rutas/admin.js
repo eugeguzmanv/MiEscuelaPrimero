@@ -149,4 +149,22 @@ adminRouter.post('/restablecerContrasena', async (req, res) => {
     }
 });
 
+
+
+
+
+
+
+
+// Ruta para obtener el catálogo de administradores
+adminRouter.get('/catalogo/administradores', async (req, res) => {
+    try {
+        const admins = await AdminModel.getAllAdmins();
+        return res.status(200).json({ message: 'Lista de administradores', admins });
+    } catch (error) {
+        console.error('Error al obtener lista de administradores:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 module.exports = adminRouter;
