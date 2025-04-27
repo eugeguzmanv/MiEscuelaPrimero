@@ -32,6 +32,30 @@ const AliadoModel = {
     updateAliadoDescripcion: (idAliado, nuevaDescripcion) => db('Aliado').where({ idAliado }).update({ descripcion: nuevaDescripcion }),
     updateAliadoPass: (idAliado, nuevaContrasena) => db('Aliado').where({ idAliado }).update({ contraseña: nuevaContrasena }), 
     
+    // New method to update all aliado fields at once
+    updateAliadoFull: (idAliado, aliadoData) => {
+        // Create update object with only the fields that are present in aliadoData
+        const updateData = {};
+        
+        if (aliadoData.nombre !== undefined) updateData.nombre = aliadoData.nombre;
+        if (aliadoData.correo_electronico !== undefined) updateData.correo_electronico = aliadoData.correo_electronico;
+        if (aliadoData.contraseña !== undefined) updateData.contraseña = aliadoData.contraseña;
+        if (aliadoData.CURP !== undefined) updateData.CURP = aliadoData.CURP;
+        if (aliadoData.institucion !== undefined) updateData.institucion = aliadoData.institucion;
+        if (aliadoData.sector !== undefined) updateData.sector = aliadoData.sector;
+        if (aliadoData.calle !== undefined) updateData.calle = aliadoData.calle;
+        if (aliadoData.colonia !== undefined) updateData.colonia = aliadoData.colonia;
+        if (aliadoData.municipio !== undefined) updateData.municipio = aliadoData.municipio;
+        if (aliadoData.numero !== undefined) updateData.numero = aliadoData.numero;
+        if (aliadoData.descripcion !== undefined) updateData.descripcion = aliadoData.descripcion;
+        
+        // Only update if there are fields to update
+        if (Object.keys(updateData).length > 0) {
+            return db('Aliado').where({ idAliado }).update(updateData);
+        }
+        return Promise.resolve(0); // Return 0 if no fields to update
+    },
+    
     //Apartado para obetener datos del administrador/es
     getAliadoById: (idAliado) => db('Aliado').where({ idAliado }).first(), //Regresa UN solo objeto gracias al .first()
     getAliadoByMail: (correo_electronico) => db('Aliado').where({ correo_electronico }).first(), //Regresa UN solo objeto gracias al .first()

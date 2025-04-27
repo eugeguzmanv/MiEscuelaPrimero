@@ -15,6 +15,23 @@ const ConstanciaFiscalModel = {
     updateConstanciaFiscalRFC: (idConstanciaFiscal, nuevoRFC) => db('Constancia_Fiscal').where({ idConstanciaFiscal }).update({ RFC: nuevoRFC }),
     updateConstanciaFiscalRazonSocial: (idConstanciaFiscal, nuevaRazonSocial) => db('Constancia_Fiscal').where({ idConstanciaFiscal }).update({ razon_social: nuevaRazonSocial }),
     updateConstanciaFiscalDomicilio: (idConstanciaFiscal, nuevoDomicilio) => db('Constancia_Fiscal').where({ idConstanciaFiscal }).update({ domicilio: nuevoDomicilio }),
+    
+    // New method to update all constancia fiscal fields at once
+    updateConstanciaFiscalFull: (idConstanciaFiscal, constanciaFiscalData) => {
+        // Create update object with only the fields that are present in constanciaFiscalData
+        const updateData = {};
+        
+        if (constanciaFiscalData.RFC !== undefined) updateData.RFC = constanciaFiscalData.RFC;
+        if (constanciaFiscalData.razon_social !== undefined) updateData.razon_social = constanciaFiscalData.razon_social;
+        if (constanciaFiscalData.regimen !== undefined) updateData.regimen = constanciaFiscalData.regimen;
+        if (constanciaFiscalData.domicilio !== undefined) updateData.domicilio = constanciaFiscalData.domicilio;
+        
+        // Only update if there are fields to update
+        if (Object.keys(updateData).length > 0) {
+            return db('Constancia_Fiscal').where({ idConstanciaFiscal }).update(updateData);
+        }
+        return Promise.resolve(0); // Return 0 if no fields to update
+    },
 
     //Obtener datos de las constancias fiscales
     getConstanciaFiscalById: (idConstanciaFiscal) => db('Constancia_Fiscal').where({ idConstanciaFiscal }).first(), //Regresa UN solo objeto gracias al .first()

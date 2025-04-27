@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import '../styles/Login.css';
@@ -12,6 +12,17 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  
+  // Clear session storage when component mounts
+  useEffect(() => {
+    const prevProfile = sessionStorage.getItem('userProfile');
+    // If user was previously logged in as aliado, clear all session data
+    if (prevProfile === 'aliado') {
+      console.log('Previous aliado session detected, clearing session storage');
+      // Clear all session data to prevent issues with stale data
+      sessionStorage.clear();
+    }
+  }, []);
   
   const handleProfileChange = (e) => {
     setProfileType(e.target.value);
@@ -32,6 +43,10 @@ const Login = () => {
     setIsLoading(true);
 
     try {
+      // Clear session storage before logging in to prevent stale data issues
+      sessionStorage.clear();
+      console.log('Session storage cleared for new login');
+      
       let endpoint = '';
       let redirectPath = '';
       

@@ -29,6 +29,28 @@ const RepresentanteModel = {
     updateRepresentanteproximo_a_jubilarse: (idRepresentante, nuevoProximo) => db('Representante').where({ idRepresentante }).update({ proximo_a_jubilarse: nuevoProximo }),
     updateRepresentanteCambio_zona: (idRepresentante, nuevoCambio) => db('Representante').where({ idRepresentante }).update({ cambio_zona: nuevoCambio }),
 
+    // New method to update all representante fields at once
+    updateRepresentanteFull: (idRepresentante, repreData) => {
+        // Create update object with only the fields that are present in repreData
+        const updateData = {};
+        
+        if (repreData.nombre !== undefined) updateData.nombre = repreData.nombre;
+        if (repreData.correo_electronico !== undefined) updateData.correo_electronico = repreData.correo_electronico;
+        if (repreData.contrasena !== undefined) updateData.contrasena = repreData.contrasena;
+        if (repreData.numero_telefonico !== undefined) updateData.numero_telefonico = repreData.numero_telefonico;
+        if (repreData.rol !== undefined) updateData.rol = repreData.rol;
+        if (repreData.anios_experiencia !== undefined) updateData.anios_experiencia = repreData.anios_experiencia;
+        if (repreData.proximo_a_jubilarse !== undefined) updateData.proximo_a_jubilarse = repreData.proximo_a_jubilarse;
+        if (repreData.cambio_zona !== undefined) updateData.cambio_zona = repreData.cambio_zona;
+        // We don't update CCT as that's the relationship with the school
+        
+        // Only update if there are fields to update
+        if (Object.keys(updateData).length > 0) {
+            return db('Representante').where({ idRepresentante }).update(updateData);
+        }
+        return Promise.resolve(0); // Return 0 if no fields to update
+    },
+
     //Apartado para obtener datos del representante/es
     getRepresentanteById: (idRepresentante) => db('Representante').where({ idRepresentante }).first(), //Regresa UN solo objeto gracias al .first()
     getRepresentanteByMail: (correo_electronico) => db('Representante').where({ correo_electronico }).first(), //Regresa UN solo objeto gracias al .first()
@@ -39,6 +61,7 @@ const RepresentanteModel = {
     getRepresentanteByCambio_zona: (cambio_zona) => db('Representante').where({ cambio_zona }).first(), //Regresa UN solo objeto gracias al .first()
     getAllRepresentantes: () => db('Representante').select('*'), //Regresa todos los objetos de la tabla en un array gracias al .select('*')
     getRepresentantesByCCT: (CCT) => db('Representante').where({ CCT }),
+    deleteRepresentante: (idRepresentante) => db('Representante').where({ idRepresentante }).del(),
 };
 
 module.exports = RepresentanteModel; //Exportamos el modelo para usarlo en otros archivos

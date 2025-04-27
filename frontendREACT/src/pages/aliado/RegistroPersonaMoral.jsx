@@ -46,8 +46,13 @@ const RegistroPersonaMoral = () => {
           const parsedData = JSON.parse(storedAliadoData);
           console.log("Parsed aliado data:", parsedData);
           
-          if (parsedData.id) {
-            console.log("Aliado ID found in sessionStorage:", parsedData.id);
+          // Look for aliado ID using consistent property name
+          if (parsedData.idAliado) {
+            console.log("Aliado ID found using consistent property name:", parsedData.idAliado);
+            setAliadoId(parsedData.idAliado);
+          } else if (parsedData.id) {
+            // Fallback for backward compatibility
+            console.log("Aliado ID found in legacy id field:", parsedData.id);
             
             // Make sure we extract a primitive value if it's an object
             const extractedId = typeof parsedData.id === 'object' && parsedData.id.idAliado 
@@ -123,12 +128,24 @@ const RegistroPersonaMoral = () => {
       const data = await response.json();
       
       if (response.ok) {
-        // Store the form data in session storage for the next form
-        sessionStorage.setItem('personaMoralData', JSON.stringify({
+        console.log("Persona moral registration successful, response data:", data);
+        
+        // Get the persona moral ID using consistent property naming
+        const idPersonaMoral = typeof data.id === 'object' && data.id.idPersonaMoral 
+          ? data.id.idPersonaMoral 
+          : data.id;
+          
+        console.log("Extracted persona moral ID:", idPersonaMoral);
+        
+        // Store the form data in session storage for the next form with consistent property naming
+        const personaMoralData = {
           ...formData,
           idAliado: idToSend,
-          id: data.id // Store the persona moral ID if returned by API
-        }));
+          idPersonaMoral: idPersonaMoral // Store with consistent property name
+        };
+        
+        console.log("Storing persona moral data with consistent property names:", personaMoralData);
+        sessionStorage.setItem('personaMoralData', JSON.stringify(personaMoralData));
         
         // Ensure user session data is maintained
         const storedAliadoData = sessionStorage.getItem('aliadoData');
@@ -144,7 +161,7 @@ const RegistroPersonaMoral = () => {
         }
         sessionStorage.setItem('userProfile', 'aliado');
         
-        console.log("Persona moral registration successful, navigating to documents page");
+        console.log("Persona moral registration complete, navigating to documents page");
         // Navigate to the next form
         navigate('/aliado/registro-documentos');
       } else {

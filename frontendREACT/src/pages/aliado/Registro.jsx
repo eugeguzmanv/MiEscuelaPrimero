@@ -25,6 +25,10 @@ const Registro = () => {
   });
 
   useEffect(() => {
+    // Clear any previous session data to prevent conflicts
+    sessionStorage.clear();
+    console.log('Session storage cleared on registration page load');
+    
     const params = new URLSearchParams(location.search);
     const tipo = params.get('tipo');
     if (tipo === 'moral') {
@@ -43,6 +47,12 @@ const Registro = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validate passwords match
+    if (formData.contraseña !== formData.confirmar_contraseña) {
+      setError('Las contraseñas no coinciden');
+      return;
+    }
+
     // For moral person, save the form data and navigate to the next page
     if (tipoRegistro === 'moral') {
       setIsLoading(true);
@@ -50,12 +60,7 @@ const Registro = () => {
       console.log("Starting moral person registration...");
       
       try {
-        console.log("Sending data to API:", {
-          nombre: formData.nombre,
-          correo_electronico: formData.correo_electronico,
-          CURP: formData.CURP,
-          // Omitting sensitive data in logs
-        });
+        console.log("Sending data to API for moral person registration");
         
         const response = await fetch('http://localhost:1000/api/registroAliado', {
           method: 'POST',
@@ -79,31 +84,35 @@ const Registro = () => {
 
         console.log("API response status:", response.status);
         const data = await response.json();
-        console.log("API response data:", data);
         
         if (response.ok) {
-          console.log("Registration successful, ID received:", data.id);
+          console.log("Aliado registration successful, ID received:", data.id);
           
           // Extract the actual ID value
           const idAliado = typeof data.id === 'object' && data.id.idAliado 
             ? data.id.idAliado 
             : data.id;
             
-          console.log("Extracted ID value:", idAliado);
+          console.log("Extracted aliado ID:", idAliado);
           
-          // Store the aliado data including ID in session storage
-          sessionStorage.setItem('aliadoData', JSON.stringify({
+          // Store aliado data in session storage with consistent format
+          const aliadoData = {
             ...formData,
-            id: idAliado // Store the ID returned from the API
-          }));
+            idAliado: idAliado // Store with consistent idAliado property name
+          };
           
-          console.log("About to navigate to /aliado/registro-persona-moral with ID:", idAliado);
+          // Save to session storage
+          sessionStorage.setItem('aliadoData', JSON.stringify(aliadoData));
+          sessionStorage.setItem('userEmail', formData.correo_electronico);
+          
+          console.log("Aliado data saved to session storage:", aliadoData);
+          console.log("Navigating to persona moral registration");
+          
           // Navigate to the persona moral registration with the aliado ID
           navigate('/aliado/registro-persona-moral', { 
             state: { aliadoId: idAliado } 
           });
-          console.log("Navigation called");
-    } else {
+        } else {
           console.error("API error:", data);
           setError(data.error || 'Error al registrar aliado');
         }
@@ -116,16 +125,13 @@ const Registro = () => {
       return;
     }
 
-    // Validate passwords match
-    if (formData.contraseña !== formData.confirmar_contraseña) {
-      setError('Las contraseñas no coinciden');
-      return;
-    }
-    
+    // For physical person, register and navigate to main page
     setIsLoading(true);
     setError(null);
     
     try {
+      console.log("Sending data to API for physical person registration");
+      
       const response = await fetch('http://localhost:1000/api/registroAliado', {
         method: 'POST',
         headers: {
@@ -149,22 +155,30 @@ const Registro = () => {
       const data = await response.json();
       
       if (response.ok) {
-        // If successful, save user data in session storage
+        console.log("Physical person registration successful");
+        
+        // Extract the actual ID value with consistent naming
         const idAliado = typeof data.id === 'object' && data.id.idAliado 
           ? data.id.idAliado 
           : data.id;
-          
+        
+        // Set session storage with consistent keys and format
         sessionStorage.setItem('userEmail', formData.correo_electronico);
         sessionStorage.setItem('userProfile', 'aliado');
-        sessionStorage.setItem('aliadoData', JSON.stringify({
-          ...formData,
-          id: idAliado
-        }));
         
+        // Store aliado data with consistent format
+        const aliadoData = {
+          ...formData,
+          idAliado: idAliado
+        };
+        sessionStorage.setItem('aliadoData', JSON.stringify(aliadoData));
+        
+        console.log("User session data saved, navigating to main page");
         // Navigate to the main page
         navigate('/aliado/main');
       } else {
         // Handle error from API
+        console.error("API error:", data);
         setError(data.error || 'Error al registrar aliado');
       }
     } catch (error) {

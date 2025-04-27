@@ -435,6 +435,132 @@ app.get('/api/representantes/escuela/:CCT', async (req, res) => {
     }
 });
 
+//Endpoint para eliminar un representante de una escuela
+app.delete('/api/escuela/:CCT/representante/:idRepresentante', async (req, res) => {
+    try {
+        const CCT = req.params.CCT;
+        const idRepresentante = req.params.idRepresentante;
+        
+        // Validar que la escuela existe
+        const escuela = await EscuelaModel.getEscuelaById(CCT);
+        if (!escuela) {
+            return res.status(404).json({ error: 'Escuela no encontrada' });
+        }
+        
+        // Validar que el representante existe y pertenece a esta escuela
+        const representante = await RepresentanteModel.getRepresentanteById(idRepresentante);
+        if (!representante) {
+            return res.status(404).json({ error: 'Representante no encontrado' });
+        }
+        
+        if (representante.CCT !== CCT) {
+            return res.status(403).json({ error: 'El representante no pertenece a esta escuela' });
+        }
+        
+        // Eliminar el representante usando el método del modelo
+        await RepresentanteModel.deleteRepresentante(idRepresentante);
+        
+        return res.status(200).json({ 
+            message: 'Representante eliminado exitosamente',
+            idRepresentante,
+            CCT
+        });
+    } catch (error) {
+        console.error('Error al eliminar representante:', error);
+        return res.status(500).json({ error: 'Error interno del servidor', details: error.message });
+    }
+});
+
+//Endpoint para actualizar múltiples representantes de una escuela a la vez
+app.put('/api/escuela/:CCT/representantes/batch', async (req, res) => {
+    try {
+        const CCT = req.params.CCT;
+        const { representantes } = req.body;
+        
+        if (!representantes || !Array.isArray(representantes) || representantes.length === 0) {
+            return res.status(400).json({ error: 'Se debe proporcionar un array de representantes a actualizar' });
+        }
+        
+        // Validar que la escuela existe
+        const escuela = await EscuelaModel.getEscuelaById(CCT);
+        if (!escuela) {
+            return res.status(404).json({ error: 'Escuela no encontrada' });
+        }
+        
+        // Mapa para validación de correos y teléfonos en proceso
+        const emailMap = new Map();
+        const phoneMap = new Map();
+        
+        // Recopilar IDs de representantes existentes
+        const existingRepresentantes = await RepresentanteModel.getRepresentantesByCCT(CCT);
+        const existingIds = existingRepresentantes.map(rep => rep.idRepresentante);
+        
+        // Verificar que cada representante pertenece a esta escuela
+        const representantesIds = representantes.map(rep => rep.idRepresentante);
+        
+        // Validar que todos los IDs existen y pertenecen a la escuela
+        for (const id of representantesIds) {
+            if (!id) {
+                return res.status(400).json({ error: 'Todos los representantes deben tener un idRepresentante' });
+            }
+            
+            const representante = await RepresentanteModel.getRepresentanteById(id);
+            if (!representante) {
+                return res.status(404).json({ error: `El representante con ID ${id} no existe` });
+            }
+            
+            if (representante.CCT !== CCT) {
+                return res.status(403).json({ error: `El representante con ID ${id} no pertenece a esta escuela` });
+            }
+            
+            // Añadir el correo y teléfono actual al mapa para validación
+            emailMap.set(id, representante.correo_electronico);
+            phoneMap.set(id, representante.numero_telefonico);
+        }
+        
+        // Validar unicidad de correos y teléfonos entre todos los representantes
+        for (const rep of representantes) {
+            // Si el correo cambió, verificar que no esté en uso por otro representante
+            if (rep.correo_electronico && rep.correo_electronico !== emailMap.get(rep.idRepresentante)) {
+                const existingEmail = await RepresentanteModel.getRepresentanteByMail(rep.correo_electronico);
+                
+                if (existingEmail && existingEmail.idRepresentante !== parseInt(rep.idRepresentante)) {
+                    return res.status(409).json({ 
+                        error: `El correo ${rep.correo_electronico} ya está registrado por otro representante` 
+                    });
+                }
+            }
+            
+            // Si el teléfono cambió, verificar que no esté en uso por otro representante
+            if (rep.numero_telefonico && rep.numero_telefonico !== phoneMap.get(rep.idRepresentante)) {
+                const existingPhone = await RepresentanteModel.getRepresentanteByPhone(rep.numero_telefonico);
+                
+                if (existingPhone && existingPhone.idRepresentante !== parseInt(rep.idRepresentante)) {
+                    return res.status(409).json({ 
+                        error: `El teléfono ${rep.numero_telefonico} ya está registrado por otro representante` 
+                    });
+                }
+            }
+        }
+        
+        // Realizar todas las actualizaciones
+        const updates = representantes.map(rep => 
+            RepresentanteModel.updateRepresentanteFull(rep.idRepresentante, rep)
+        );
+        
+        await Promise.all(updates);
+        
+        return res.status(200).json({ 
+            message: `${representantes.length} representantes actualizados exitosamente`,
+            CCT,
+            representantesActualizados: representantesIds
+        });
+    } catch (error) {
+        console.error('Error al actualizar lote de representantes:', error);
+        return res.status(500).json({ error: 'Error interno del servidor', details: error.message });
+    }
+});
+
 //============ENPOINTS DE ESCUELA============//
 //Endpoint de registro de escuela
 app.post('/api/registroEscuela', async (req, res) => { 
@@ -531,6 +657,89 @@ app.get('/api/escuelas/', async (req, res) => {
         }
     } catch (error) {
         return res.status(500).json({ error: "Error interno del servidor", details: error.message });
+    }
+});
+
+//Endpoint para actualizar la escuela y sus representantes por su CCT 
+app.put('/api/escuela/actualizarCompleto/:CCT', async (req, res) => {
+    try {
+        const CCT = req.params.CCT;
+        const { 
+            escuelaData, 
+            representantesData 
+        } = req.body;
+
+        // Validar que el CCT existe
+        const escuela = await EscuelaModel.getEscuelaById(CCT);
+        if (!escuela) {
+            return res.status(404).json({ error: 'Escuela no encontrada' });
+        }
+
+        // Actualizar todos los campos de la escuela usando el nuevo método
+        if (escuelaData) {
+            // Validar que el CCT en el body coincide con el CCT en la URL
+            if (escuelaData.CCT && escuelaData.CCT !== CCT) {
+                return res.status(400).json({ error: 'No se puede modificar el CCT de la escuela' });
+            }
+
+            // Actualizar todos los campos a la vez
+            await EscuelaModel.updateEscuelaFull(CCT, escuelaData);
+        }
+
+        // Actualizar los representantes usando el nuevo método
+        if (representantesData && Array.isArray(representantesData)) {
+            const actualizacionesRepresentantes = representantesData.map(async (representante) => {
+                // Cada representante debe tener un idRepresentante
+                if (!representante.idRepresentante) {
+                    throw new Error('Todos los representantes deben tener un idRepresentante');
+                }
+
+                // Verificar que el representante existe y pertenece a esta escuela
+                const representanteExistente = await RepresentanteModel.getRepresentanteById(representante.idRepresentante);
+                if (!representanteExistente) {
+                    throw new Error(`El representante con ID ${representante.idRepresentante} no existe`);
+                }
+                
+                // Verificar que el representante pertenece a esta escuela
+                if (representanteExistente.CCT !== CCT) {
+                    throw new Error(`El representante con ID ${representante.idRepresentante} no pertenece a esta escuela`);
+                }
+
+                // Verificar correo único
+                if (representante.correo_electronico && 
+                    representante.correo_electronico !== representanteExistente.correo_electronico) {
+                    const existingEmail = await RepresentanteModel.getRepresentanteByMail(representante.correo_electronico);
+                    if (existingEmail && existingEmail.idRepresentante !== parseInt(representante.idRepresentante)) {
+                        throw new Error(`El correo ${representante.correo_electronico} ya está registrado por otro representante`);
+                    }
+                }
+                
+                // Verificar teléfono único
+                if (representante.numero_telefonico && 
+                    representante.numero_telefonico !== representanteExistente.numero_telefonico) {
+                    const existingPhone = await RepresentanteModel.getRepresentanteByPhone(representante.numero_telefonico);
+                    if (existingPhone && existingPhone.idRepresentante !== parseInt(representante.idRepresentante)) {
+                        throw new Error(`El teléfono ${representante.numero_telefonico} ya está registrado por otro representante`);
+                    }
+                }
+
+                // Actualizar todos los campos del representante a la vez
+                await RepresentanteModel.updateRepresentanteFull(representante.idRepresentante, representante);
+
+                return representante.idRepresentante;
+            });
+
+            // Esperar a que todas las actualizaciones de representantes terminen
+            await Promise.all(actualizacionesRepresentantes);
+        }
+
+        return res.status(200).json({ 
+            message: 'Información de la escuela y sus representantes actualizada exitosamente',
+            CCT
+        });
+    } catch (error) {
+        console.error('Error al actualizar la escuela y sus representantes:', error);
+        return res.status(500).json({ error: 'Error interno del servidor', details: error.message });
     }
 });
 
@@ -790,6 +999,8 @@ app.get('/api/aliados', async (req, res) => {
         return res.status(500).json({error: 'Error interno del servidor', details: error.message});
     }
 })
+
+
 //Endpoint para ver el catálogo de aliados por institución (UTILIZAMOS QUERY-STRING)
 app.get('/api/aliadoInst/:institucion', async (req, res) => {
     try{
@@ -957,6 +1168,51 @@ app.put('/api/actualizarAliado', async (req, res) => {
     }
 });
 
+//Nuevo endpoint para actualizar toda la información de un aliado
+app.put('/api/aliado/actualizarCompleto/:id', async (req, res) => {
+  try {
+    const aliadoId = req.params.id;
+    const { 
+      aliadoData, 
+      personaMoralData, 
+      escrituraPublicaData, 
+      constanciaFiscalData 
+    } = req.body;
+
+    // Actualizar datos del aliado
+    if (aliadoData) {
+      await AliadoModel.updateAliadoFull(aliadoId, aliadoData);
+    }
+
+    // Actualizar datos de persona moral
+    if (personaMoralData && personaMoralData.idPersonaMoral) {
+      await PersonaMoralModel.updatePersonaMoralFull(personaMoralData.idPersonaMoral, personaMoralData);
+    }
+
+    // Actualizar datos de escritura pública
+    if (escrituraPublicaData && escrituraPublicaData.idEscrituraPublica) {
+      await EscrituraPublicaModel.updateEscrituraPublicaFull(escrituraPublicaData.idEscrituraPublica, escrituraPublicaData);
+    }
+
+    // Actualizar datos de constancia fiscal
+    if (constanciaFiscalData && constanciaFiscalData.idConstanciaFiscal) {
+      await ConstanciaFiscalModel.updateConstanciaFiscalFull(constanciaFiscalData.idConstanciaFiscal, constanciaFiscalData);
+    }
+
+    res.status(200).json({ 
+      success: true, 
+      message: 'Información del aliado actualizada correctamente' 
+    });
+  } catch (error) {
+    console.error('Error al actualizar información del aliado:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error al actualizar la información del aliado', 
+      error: error.message 
+    });
+  }
+});
+
 //Endpoint para restablecer la contraseña del aliado
 app.post('/api/restablecerAliadoContrasena', async (req, res) => { 
     try{
@@ -987,12 +1243,6 @@ app.post('/api/restablecerAliadoContrasena', async (req, res) => {
 //============ENPOINTS DE NECESIDAD============//
 
 //============ENPOINTS DE DIAGNOSTICO============//
-
-//============ENPOINTS DE ALIADO============//
-
-//============ENPOINTS DE APOYO============//
-
-//============ENPOINTS DE ESCUELA_RECIBE_APOYO============//
 
 //============ENPOINTS DE ALIADO_BRINDA_APOYO============//
 

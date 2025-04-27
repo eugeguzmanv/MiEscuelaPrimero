@@ -34,14 +34,18 @@ const RegistroDocumentos = () => {
         console.log("Retrieved personaMoralData:", parsedData);
         setPersonaMoralData(parsedData);
         
-        // Check if we have the idPersonaMoral
-        if (parsedData.id) {
+        // Check if we have the idPersonaMoral using consistent property name
+        if (parsedData.idPersonaMoral) {
+          console.log("Found idPersonaMoral in stored data:", parsedData.idPersonaMoral);
+          setIdPersonaMoral(parsedData.idPersonaMoral);
+        } else if (parsedData.id) {
+          // Fallback for backward compatibility
           const extractedId = typeof parsedData.id === 'object' && parsedData.id.idPersonaMoral 
             ? parsedData.id.idPersonaMoral 
             : parsedData.id;
             
           if (extractedId) {
-            console.log("Found idPersonaMoral in stored data:", extractedId);
+            console.log("Found idPersonaMoral in legacy id field:", extractedId);
             setIdPersonaMoral(extractedId);
           }
         }
@@ -74,8 +78,16 @@ const RegistroDocumentos = () => {
   // New useEffect to fetch the Persona Moral ID if we don't have it yet
   useEffect(() => {
     const fetchPersonaMoralId = async () => {
-      if (!idPersonaMoral && personaMoralData && personaMoralData.idAliado) {
+      if (!idPersonaMoral && personaMoralData) {
+        // Get idAliado using consistent property name
+        const idAliado = getIdAliado();
+        if (!idAliado) {
+          console.error("Cannot fetch persona moral ID without aliado ID");
+          return;
+        }
+
         try {
+          console.log(`Fetching persona moral with nombre_organizacion: ${personaMoralData.nombre_organizacion}, idAliado: ${idAliado}`);
           // Use the nombre_organizacion to find the PersonaMoral
           const response = await fetch(`http://localhost:1000/api/personaMoral/nombre_organizacion/${encodeURIComponent(personaMoralData.nombre_organizacion)}`, {
             method: 'GET',
@@ -90,12 +102,23 @@ const RegistroDocumentos = () => {
           if (response.ok && data) {
             // If the API returns an array, find the one matching our aliadoId
             const personaMoral = Array.isArray(data) 
-              ? data.find(pm => pm.idAliado === personaMoralData.idAliado)
+              ? data.find(pm => pm.idAliado === idAliado)
               : data;
               
             if (personaMoral && personaMoral.idPersonaMoral) {
               console.log("Found idPersonaMoral:", personaMoral.idPersonaMoral);
+              // Update both state and session storage with consistent idPersonaMoral property
               setIdPersonaMoral(personaMoral.idPersonaMoral);
+              
+              // Update personaMoralData in session storage with the correct ID
+              const updatedPersonaMoralData = {
+                ...personaMoralData,
+                idPersonaMoral: personaMoral.idPersonaMoral
+              };
+              sessionStorage.setItem('personaMoralData', JSON.stringify(updatedPersonaMoralData));
+              setPersonaMoralData(updatedPersonaMoralData);
+              
+              console.log("Updated personaMoralData in session storage with idPersonaMoral");
             } else {
               console.error("Could not find matching Persona Moral record");
               setError("No se pudo encontrar el ID de la Persona Moral");
@@ -170,6 +193,11 @@ const RegistroDocumentos = () => {
       
       console.log("Escritura Pública registered successfully:", escrituraData);
       
+      // Get the escritura ID using consistent property naming
+      const idEscrituraPublica = typeof escrituraData.id === 'object' && escrituraData.id.idEscrituraPublica
+        ? escrituraData.id.idEscrituraPublica
+        : escrituraData.id;
+      
       // Then register Constancia Fiscal
       console.log("Registering Constancia Fiscal with:", {
         idPersonaMoral,
@@ -201,25 +229,28 @@ const RegistroDocumentos = () => {
       
       console.log("Constancia Fiscal registered successfully:", constanciaData);
       
-      // Store the combined data for later use if needed
-      const combinedData = {
-        ...personaMoralData,
-        ...formData,
-        idEscrituraPublica: escrituraData.id,
-        idConstanciaFiscal: constanciaData.id
-      };
+      // Get the constancia ID using consistent property naming
+      const idConstanciaFiscal = typeof constanciaData.id === 'object' && constanciaData.id.idConstanciaFiscal
+        ? constanciaData.id.idConstanciaFiscal
+        : constanciaData.id;
       
-      // Store all the necessary user session data
-      sessionStorage.setItem('aliadoCompleteData', JSON.stringify(combinedData));
+      // Now we're done with registration.
+      // We'll clear all existing session storage to prevent stale data
+      sessionStorage.clear();
       
-      // Also set standard user session data
-      if (aliadoData && aliadoData.correo_electronico) {
-        sessionStorage.setItem('userEmail', aliadoData.correo_electronico);
-      } else if (personaMoralData && personaMoralData.correo_electronico) {
-        sessionStorage.setItem('userEmail', personaMoralData.correo_electronico);
+      // Set user email in session storage for profile access
+      const userEmail = aliadoData?.correo_electronico || personaMoralData?.correo_electronico;
+      if (userEmail) {
+        console.log("Setting user email in session storage:", userEmail);
+        sessionStorage.setItem('userEmail', userEmail);
+      } else {
+        console.warn("No user email found in either aliado or persona moral data");
       }
+      
+      // Set user profile type
       sessionStorage.setItem('userProfile', 'aliado');
       
+      console.log("Registration complete, navigating to main page");
       // Navigate to the main page
       navigate('/aliado/main');
     } catch (error) {
@@ -230,16 +261,23 @@ const RegistroDocumentos = () => {
     }
   };
   
-  // Helper function to extract idAliado
+  // Helper function to extract idAliado with consistent property naming
   const getIdAliado = () => {
     if (personaMoralData && personaMoralData.idAliado) {
       return personaMoralData.idAliado;
     }
     
-    if (aliadoData && aliadoData.id) {
-      return typeof aliadoData.id === 'object' && aliadoData.id.idAliado 
-        ? aliadoData.id.idAliado 
-        : aliadoData.id;
+    if (aliadoData) {
+      if (aliadoData.idAliado) {
+        return aliadoData.idAliado;
+      }
+      
+      // Fallback for backward compatibility
+      if (aliadoData.id) {
+        return typeof aliadoData.id === 'object' && aliadoData.id.idAliado 
+          ? aliadoData.id.idAliado 
+          : aliadoData.id;
+      }
     }
     
     return null;

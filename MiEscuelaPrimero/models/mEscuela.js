@@ -31,7 +31,33 @@ const EscuelaModel = {
     updateEscuelaColonia: (CCT, nuevaColonia) => db('Escuela').where({ CCT }).update({ colonia: nuevaColonia }),
     updateEscuelaNumero: (CCT, nuevoNumero) => db('Escuela').where({ CCT }).update({ numero: nuevoNumero }),
     updateEscuelaNumero_estudiantes: (CCT, nuevoNumeroAlumnos) => db('Escuela').where({ CCT }).update({ numero_estudiantes: nuevoNumeroAlumnos }),
-
+    updateEscuelaDescripcion: (CCT, nuevaDescripcion) => db('Escuela').where({ CCT }).update({ descripcion: nuevaDescripcion }),
+    
+    // New method to update all school fields at once
+    updateEscuelaFull: (CCT, escuelaData) => {
+        // Create update object with only the fields that are present in escuelaData
+        const updateData = {};
+        
+        if (escuelaData.nombre !== undefined) updateData.nombre = escuelaData.nombre;
+        if (escuelaData.modalidad !== undefined) updateData.modalidad = escuelaData.modalidad;
+        if (escuelaData.nivel_educativo !== undefined) updateData.nivel_educativo = escuelaData.nivel_educativo;
+        if (escuelaData.sector_escolar !== undefined) updateData.sector_escolar = escuelaData.sector_escolar;
+        if (escuelaData.sostenimiento !== undefined) updateData.sostenimiento = escuelaData.sostenimiento;
+        if (escuelaData.zona_escolar !== undefined) updateData.zona_escolar = escuelaData.zona_escolar;
+        if (escuelaData.calle !== undefined) updateData.calle = escuelaData.calle;
+        if (escuelaData.colonia !== undefined) updateData.colonia = escuelaData.colonia;
+        if (escuelaData.municipio !== undefined) updateData.municipio = escuelaData.municipio;
+        if (escuelaData.numero !== undefined) updateData.numero = escuelaData.numero;
+        if (escuelaData.descripcion !== undefined) updateData.descripcion = escuelaData.descripcion;
+        if (escuelaData.control_administrativo !== undefined) updateData.control_administrativo = escuelaData.control_administrativo;
+        if (escuelaData.numero_estudiantes !== undefined) updateData.numero_estudiantes = escuelaData.numero_estudiantes;
+        
+        // Only update if there are fields to update
+        if (Object.keys(updateData).length > 0) {
+            return db('Escuela').where({ CCT }).update(updateData);
+        }
+        return Promise.resolve(0); // Return 0 if no fields to update
+    },
 
     //Obtener datos de las escuelas
     getEscuelaById: (CCT) => db('Escuela').where({ CCT }).first(), //Regresa UN solo objeto gracias al .first()

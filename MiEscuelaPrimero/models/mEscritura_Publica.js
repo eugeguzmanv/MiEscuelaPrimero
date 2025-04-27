@@ -19,6 +19,23 @@ const EscrituraPublicaModel = {
     updateEscrituraPublicaCiudad: (idEscrituraPublica, nuevaCiudad) => db('Escritura_Publica').where({ idEscrituraPublica }).update({ ciudad: nuevaCiudad }),
     updateEscrituraPublicaNumero: (idEscrituraPublica, nuevoNumero) => db('Escritura_Publica').where({ idEscrituraPublica }).update({ numero_escritura: nuevoNumero }),
     
+    // New method to update all escritura publica fields at once
+    updateEscrituraPublicaFull: (idEscrituraPublica, escrituraPublicaData) => {
+        // Create update object with only the fields that are present in escrituraPublicaData
+        const updateData = {};
+        
+        if (escrituraPublicaData.fecha_escritura !== undefined) updateData.fecha_escritura = escrituraPublicaData.fecha_escritura;
+        if (escrituraPublicaData.notario !== undefined) updateData.notario = escrituraPublicaData.notario;
+        if (escrituraPublicaData.numero_escritura !== undefined) updateData.numero_escritura = escrituraPublicaData.numero_escritura;
+        if (escrituraPublicaData.ciudad !== undefined) updateData.ciudad = escrituraPublicaData.ciudad;
+        
+        // Only update if there are fields to update
+        if (Object.keys(updateData).length > 0) {
+            return db('Escritura_Publica').where({ idEscrituraPublica }).update(updateData);
+        }
+        return Promise.resolve(0); // Return 0 if no fields to update
+    },
+    
     //Obtener datos de las escrituras publicas
     getEscrituraPublicaById: (idEscrituraPublica) => db('Escritura_Publica').where({ idEscrituraPublica }).first(), //Regresa UN solo objeto gracias al .first()
     getEscrituraPublicaBynumero_escritura: (numero_escritura) => db('Escritura_Publica').where({ numero_escritura }).select('*'), //Regresa todos los objetos que tengan el mismo numero de escritura
