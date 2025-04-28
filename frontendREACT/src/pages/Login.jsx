@@ -106,11 +106,21 @@ const Login = () => {
       if (data.rol) {
         sessionStorage.setItem('userRole', data.rol);
       }
+      
+      // Store the user ID consistently with the same key name for all profiles
+      if (profileType === 'aliado' && data.id) {
+        // Store the aliado ID with multiple keys for backward compatibility
+        sessionStorage.setItem('idAliado', data.id);
+        sessionStorage.setItem('aliadoId', data.id);
+        sessionStorage.setItem('userId', data.id);
+        console.log('Stored aliado ID in session storage:', data.id);
+      }
 
       console.log('Stored in session storage:', {
         userProfile: profileType,
         userEmail: formData.email,
-        userRole: data.rol || null
+        userRole: data.rol || null,
+        userId: data.id || null
       });
 
       // Redirect to appropriate dashboard

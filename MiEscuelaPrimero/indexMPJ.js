@@ -28,6 +28,8 @@ const AliadoModel = require('./models/mAliado.js');
 const PersonaMoralModel = require('./models/mPersona_Moral.js');
 const EscrituraPublicaModel = require('./models/mEscritura_Publica.js');
 const ConstanciaFiscalModel = require('./models/mConstancia_Fiscal.js');
+const NecesidadModel = require('./models/mNecesidad.js');
+const ApoyoModel = require('./models/mApoyo.js');
 
 app.use(express.static('public')); //Para poder servir archivos estáticos como HTML, CSS, JS, etc.
 app.use(express.json()); //Para poder recibir datos en formato JSON en el body de las peticiones
@@ -1238,28 +1240,6 @@ app.post('/api/restablecerAliadoContrasena', async (req, res) => {
 });
 
 
-//============ENPOINTS DE FIRMA DE DOCUMENTOS============//
-
-//============ENPOINTS DE NECESIDAD============//
-
-//============ENPOINTS DE DIAGNOSTICO============//
-
-//============ENPOINTS DE ALIADO_BRINDA_APOYO============//
-
-//============ENPOINTS DE CRONOGRAMA============//
-
-//============ENPOINTS DE ACTIVIDAD============//
-
-//============ENPOINTS DE CHAT============//
-
-//============ENPOINTS DE CHAT_ALIADO_ESCUELA============//
-
-//============ENPOINTS DE MENSAJES============//
-
-//============ENPOINTS DE NOTIFICACION============//
-
-//============ENPOINTS DE ALIADO_APOYA_ESCUELA============//
-
 //============ENPOINTS DE PERSONA_MORAL============//
 //Endpoint para registrar al aliado como persona moral
 app.post('/api/registroPersonaMoral', async (req, res) => { 
@@ -1654,6 +1634,136 @@ app.get('/api/admin/perfil', async (req, res) => {
         
     } catch (error) {
         console.error('Error al obtener datos del administrador:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+//============ENPOINTS DE NECESIDAD============//
+// Endpoint para registrar una nueva necesidad
+app.post('/api/registroNecesidad', async (req, res) => {
+    try {
+        const { Categoria, Sub_categoria, Fecha, Descripcion, Estado_validacion, CCT } = req.body;
+
+        // Validar que los campos requeridos no estén vacíos
+        if (!Categoria || !Sub_categoria || !Fecha || !Descripcion || !CCT) {
+            return res.status(400).json({ error: 'Los campos Categoria, Sub_categoria, Fecha, Descripcion y CCT son obligatorios' });
+        }
+
+        // Verificar que la escuela exista
+        const escuela = await EscuelaModel.getEscuelaById(CCT);
+        if (!escuela) {
+            return res.status(404).json({ error: 'La escuela con el CCT proporcionado no existe' });
+        }
+
+        // Crear la necesidad
+        const necesidadData = {
+            Categoria,
+            Sub_categoria,
+            Fecha,
+            Descripcion,
+            Estado_validacion: Estado_validacion || false,
+            CCT
+        };
+        
+        const result = await NecesidadModel.createNecesidad(necesidadData);
+        
+        return res.status(201).json({ 
+            message: 'Necesidad registrada exitosamente',
+            id: result.id
+        });
+    } catch (error) {
+        console.error('Error al registrar necesidad:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Endpoint para obtener todas las necesidades de una escuela por CCT
+app.get('/api/necesidades/escuela/:CCT', async (req, res) => {
+    try {
+        const CCT = req.params.CCT;
+
+        // Validar que el CCT no esté vacío
+        if (!CCT) {
+            return res.status(400).json({ error: 'El CCT es obligatorio' });
+        }
+
+        // Verificar que la escuela exista
+        const escuela = await EscuelaModel.getEscuelaById(CCT);
+        if (!escuela) {
+            return res.status(404).json({ error: 'La escuela con el CCT proporcionado no existe' });
+        }
+
+        // Obtener las necesidades
+        const necesidades = await NecesidadModel.getNecesidadesByCCT(CCT);
+        
+        return res.status(200).json(necesidades);
+    } catch (error) {
+        console.error('Error al obtener necesidades:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+//============ENPOINTS DE APOYO============//
+// Endpoint para registrar un nuevo apoyo
+app.post('/api/registroApoyo', async (req, res) => {
+    try {
+        const { Categoria, Sub_categoria, Fecha, Descripcion, Estado_validacion, idAliado } = req.body;
+
+        // Validar que los campos requeridos no estén vacíos
+        if (!Categoria || !Sub_categoria || !Fecha || !Descripcion || !idAliado) {
+            return res.status(400).json({ error: 'Los campos Categoria, Sub_categoria, Fecha, Descripcion e idAliado son obligatorios' });
+        }
+
+        // Verificar que el aliado exista
+        const aliado = await AliadoModel.getAliadoById(idAliado);
+        if (!aliado) {
+            return res.status(404).json({ error: 'El aliado con el ID proporcionado no existe' });
+        }
+
+        // Crear el apoyo
+        const apoyoData = {
+            Categoria,
+            Sub_categoria,
+            Fecha,
+            Descripcion,
+            Estado_validacion: Estado_validacion || false,
+            idAliado
+        };
+        
+        const result = await ApoyoModel.createApoyo(apoyoData);
+        
+        return res.status(201).json({ 
+            message: 'Apoyo registrado exitosamente',
+            id: result.id
+        });
+    } catch (error) {
+        console.error('Error al registrar apoyo:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Endpoint para obtener todos los apoyos de un aliado por idAliado
+app.get('/api/apoyos/aliado/:idAliado', async (req, res) => {
+    try {
+        const idAliado = req.params.idAliado;
+
+        // Validar que el idAliado no esté vacío
+        if (!idAliado) {
+            return res.status(400).json({ error: 'El ID del aliado es obligatorio' });
+        }
+
+        // Verificar que el aliado exista
+        const aliado = await AliadoModel.getAliadoById(idAliado);
+        if (!aliado) {
+            return res.status(404).json({ error: 'El aliado con el ID proporcionado no existe' });
+        }
+
+        // Obtener los apoyos
+        const apoyos = await ApoyoModel.getApoyosByAliadoId(idAliado);
+        
+        return res.status(200).json(apoyos);
+    } catch (error) {
+        console.error('Error al obtener apoyos:', error);
         return res.status(500).json({ error: 'Error interno del servidor' });
     }
 });

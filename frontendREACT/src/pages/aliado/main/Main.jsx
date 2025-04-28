@@ -3,6 +3,7 @@ import Header from '../../../components/Header';
 import PerfilAliado from './PerfilAliado';
 import EscuelasAliado from './EscuelasAliado';
 import ProyectosAliado from './ProyectosAliado';
+import ApoyosSection from './ApoyosSection';
 import styles from './Main.module.css';
 
 const Main = () => {
@@ -78,7 +79,7 @@ const Main = () => {
           )}
           {activeTab === 'apoyos' && (
             <div id="apoyos-section" className={styles.contentSection}>
-              <h2>Apoyos Content Coming Soon</h2>
+              <ApoyosSection />
             </div>
           )}
         </main>

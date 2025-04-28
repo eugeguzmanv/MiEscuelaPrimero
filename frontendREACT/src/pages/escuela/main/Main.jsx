@@ -3,6 +3,7 @@ import Header from '../../../components/Header';
 import PerfilSection from './PerfilSection';
 import AliadosSection from './AliadosSection';
 import ProyectosSection from './ProyectosSection';
+import NecesidadesSection from './NecesidadesSection';
 import styles from './Main.module.css';
 
 const Main = () => {
@@ -78,7 +79,7 @@ const Main = () => {
           )}
           {activeTab === 'necesidades' && (
             <div id="necesidades-section" className={styles.contentSection}>
-              <h2>Necesidades Content Coming Soon</h2>
+              <NecesidadesSection />
             </div>
           )}
         </main>

@@ -95,6 +95,11 @@ const Registro = () => {
             
           console.log("Extracted aliado ID:", idAliado);
           
+          // Store ID with multiple keys for consistency and backward compatibility
+          sessionStorage.setItem('idAliado', idAliado);
+          sessionStorage.setItem('aliadoId', idAliado);
+          sessionStorage.setItem('userId', idAliado);
+          
           // Store aliado data in session storage with consistent format
           const aliadoData = {
             ...formData,
@@ -165,6 +170,11 @@ const Registro = () => {
         // Set session storage with consistent keys and format
         sessionStorage.setItem('userEmail', formData.correo_electronico);
         sessionStorage.setItem('userProfile', 'aliado');
+        
+        // Store aliado ID with multiple keys for consistency and backward compatibility
+        sessionStorage.setItem('idAliado', idAliado);
+        sessionStorage.setItem('aliadoId', idAliado);
+        sessionStorage.setItem('userId', idAliado);
         
         // Store aliado data with consistent format
         const aliadoData = {

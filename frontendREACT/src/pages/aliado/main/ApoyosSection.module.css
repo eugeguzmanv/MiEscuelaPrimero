@@ -1,0 +1,281 @@
+.apoyosContainer {
+  width: 100%;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.headerSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.sectionTitle {
+  font-size: 24px;
+  color: #333;
+  margin: 0;
+}
+
+.registerButton {
+  background-color: #FF6B00;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.registerButton:hover {
+  background-color: #E66000;
+}
+
+.loadingContainer {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: #666;
+}
+
+.successMessage {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.errorMessage {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.emptyMessage {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.apoyosGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.apoyoCard {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.apoyoCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.cardHeader {
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 18px;
+  color: #2C8B3F;
+}
+
+.validacion {
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.cardBody {
+  padding: 15px;
+}
+
+.subcategoria, 
+.fecha {
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.descripcionContainer {
+  margin-top: 12px;
+}
+
+.descripcion {
+  margin: 0 0 5px 0;
+  font-size: 14px;
+}
+
+.descripcionText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #555;
+  overflow-wrap: break-word;
+}
+
+/* Modal styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  width: 90%;
+  max-width: 500px;
+  overflow: hidden;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modalHeader {
+  background-color: #2C8B3F;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modalHeader h3 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.modalForm {
+  padding: 20px;
+}
+
+.formGroup {
+  margin-bottom: 15px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #333;
+}
+
+.formControl {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+}
+
+.formControl:focus {
+  border-color: #2C8B3F;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(44, 139, 63, 0.25);
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.cancelButton {
+  background-color: #f8f9fa;
+  color: #333;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.cancelButton:hover {
+  background-color: #e2e6ea;
+}
+
+.submitButton {
+  background-color: #FF6B00;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.submitButton:hover {
+  background-color: #E66000;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .headerSection {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .registerButton {
+    width: 100%;
+  }
+  
+  .apoyosGrid {
+    grid-template-columns: 1fr;
+  }
+} 
