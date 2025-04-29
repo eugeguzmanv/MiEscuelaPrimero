@@ -4,6 +4,7 @@ import PerfilAliado from './PerfilAliado';
 import EscuelasAliado from './EscuelasAliado';
 import ProyectosAliado from './ProyectosAliado';
 import ApoyosSection from './ApoyosSection';
+import MapaAliados from './MapaAliados';
 import styles from './Main.module.css';
 
 const Main = () => {
@@ -88,6 +89,16 @@ const Main = () => {
             >
               Apoyos
             </a>
+            <a 
+              href="#" 
+              className={`${styles.menuItem} ${activeTab === 'mapa' ? styles.active : ''}`} 
+              onClick={(e) => {
+                e.preventDefault();
+                handleTabChange('mapa');
+              }}
+            >
+              Mapa
+            </a>
           </nav>
         </div>
         <main className={styles.mainContent}>
@@ -109,6 +120,11 @@ const Main = () => {
           {activeTab === 'apoyos' && (
             <div id="apoyos-section" className={styles.contentSection}>
               <ApoyosSection />
+            </div>
+          )}
+          {activeTab === 'mapa' && (
+            <div id="mapa-section" className={styles.contentSection}>
+              <MapaAliados />
             </div>
           )}
         </main>

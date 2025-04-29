@@ -4,6 +4,7 @@ import PerfilSection from './PerfilSection';
 import AliadosSection from './AliadosSection';
 import ProyectosSection from './ProyectosSection';
 import NecesidadesSection from './NecesidadesSection';
+import MapaEscuelas from './MapaEscuelas';
 import styles from './Main.module.css';
 
 const Main = () => {
@@ -72,6 +73,23 @@ const Main = () => {
     setActiveTab(tab);
   };
 
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'perfil':
+        return <PerfilSection escuelaData={escuelaData} />;
+      case 'aliados':
+        return <AliadosSection escuelaData={escuelaData} />;
+      case 'proyectos':
+        return <ProyectosSection escuelaData={escuelaData} />;
+      case 'necesidades':
+        return <NecesidadesSection escuelaData={escuelaData} />;
+      case 'mapa':
+        return <MapaEscuelas />;
+      default:
+        return <PerfilSection />;
+    }
+  };
+
   if (loading) {
     return <div className={styles.loadingContainer}>Cargando datos de la escuela...</div>;
   }
@@ -126,29 +144,22 @@ const Main = () => {
             >
               Necesidades
             </a>
+            <a 
+              href="#" 
+              className={`${styles.menuItem} ${activeTab === 'mapa' ? styles.active : ''}`} 
+              onClick={(e) => {
+                e.preventDefault();
+                handleTabChange('mapa');
+              }}
+            >
+              Mapa
+            </a>
           </nav>
         </div>
         <main className={styles.mainContent}>
-          {activeTab === 'perfil' && (
-            <div id="perfil-section" className={styles.contentSection}>
-              <PerfilSection escuelaData={escuelaData} />
-            </div>
-          )}
-          {activeTab === 'aliados' && (
-            <div id="aliados-section" className={styles.contentSection}>
-              <AliadosSection escuelaData={escuelaData} />
-            </div>
-          )}
-          {activeTab === 'proyectos' && (
-            <div id="proyectos-section" className={styles.contentSection}>
-              <ProyectosSection escuelaData={escuelaData} />
-            </div>
-          )}
-          {activeTab === 'necesidades' && (
-            <div id="necesidades-section" className={styles.contentSection}>
-              <NecesidadesSection escuelaData={escuelaData} />
-            </div>
-          )}
+          <div className={styles.contentSection}>
+            {renderContent()}
+          </div>
         </main>
       </div>
     </div>
