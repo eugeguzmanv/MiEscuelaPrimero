@@ -459,17 +459,21 @@ h3 {
 .searchMenu {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding: 1.5rem;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
   background-color: #f5f5f5;
   border-radius: 8px;
-  margin-bottom: 2rem;
+  margin-bottom: 20px;
+  width: 100%;
 }
 
 .searchGroup {
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  width: 100%;
+  max-width: 600px;
 }
 
 .searchGroup input {
@@ -478,6 +482,7 @@ h3 {
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 1rem;
+  min-width: 300px;
 }
 
 .searchGroup button {

@@ -419,11 +419,13 @@ const PerfilSection = () => {
                       value={editedEscuela.nivel_educativo || ''}
                       onChange={handleEscuelaInputChange}
                     >
-                      <option value="">Seleccionar...</option>
+                      <option value="">Selecciona un nivel</option>
                       <option value="Preescolar">Preescolar</option>
                       <option value="Primaria">Primaria</option>
                       <option value="Secundaria">Secundaria</option>
-                      <option value="Media Superior">Media Superior</option>
+                      <option value="Preescolar y Primaria">Preescolar y Primaria</option>
+                      <option value="Primaria y Secundaria">Primaria y Secundaria</option>
+                      <option value="Preescolar, Primaria y Secundaria">Preescolar, Primaria y Secundaria</option>
                     </select>
                   </div>
                 </div>

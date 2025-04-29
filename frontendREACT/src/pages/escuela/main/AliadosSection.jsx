@@ -376,7 +376,7 @@ const AliadosSection = ({ escuelaData }) => {
           {loading ? 'No se encontraron aliados para esta búsqueda' : 'No hay aliados disponibles'}
         </div>
       ) : (
-        <div className={styles.aliadosGrid}>
+      <div className={styles.aliadosGrid}>
           {aliados.map((aliado, index) => (
             <div key={aliado.idAliado || `aliado-${index}`} className={styles.aliadoCard}>
               <h2>{aliado.nombre || 'Aliado sin nombre'}</h2>

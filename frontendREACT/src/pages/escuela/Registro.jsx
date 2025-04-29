@@ -125,15 +125,22 @@ const Registro = () => {
           <label className={styles.label} htmlFor="nivel">
             Nivel educativo:
           </label>
-          <input
-            className={styles.input}
-            type="text"
+          <select
+            className={styles.select}
             id="nivel"
             name="nivel"
             value={formData.nivel}
             onChange={handleChange}
             required
-          />
+          >
+            <option value="">Selecciona un nivel</option>
+            <option value="Preescolar">Preescolar</option>
+            <option value="Primaria">Primaria</option>
+            <option value="Secundaria">Secundaria</option>
+            <option value="Preescolar y Primaria">Preescolar y Primaria</option>
+            <option value="Primaria y Secundaria">Primaria y Secundaria</option>
+            <option value="Preescolar, Primaria y Secundaria">Preescolar, Primaria y Secundaria</option>
+          </select>
 
           <label className={styles.label} htmlFor="modalidad">
             Modalidad:
