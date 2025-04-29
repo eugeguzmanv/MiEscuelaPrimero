@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './EscuelasAliado.module.css';
 
-const EscuelasAliado = () => {
+const EscuelasAliado = ({ aliadoData }) => {
   const [escuelas, setEscuelas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -11,6 +11,10 @@ const EscuelasAliado = () => {
   const [necesidades, setNecesidades] = useState([]);
   const [loadingNecesidades, setLoadingNecesidades] = useState(false);
   const [necesidadesError, setNecesidadesError] = useState(null);
+  const [showConvenioModal, setShowConvenioModal] = useState(false);
+  const [selectedNecesidad, setSelectedNecesidad] = useState(null);
+  const [firmaAliado, setFirmaAliado] = useState(false);
+  const [message, setMessage] = useState(null);
 
   useEffect(() => {
     const fetchEscuelas = async () => {
@@ -89,6 +93,80 @@ const EscuelasAliado = () => {
     setSelectedEscuela(null);
     setNecesidades([]);
     setNecesidadesError(null);
+  };
+
+  // Function to handle convenio registration
+  const handleConvenioRegistration = async () => {
+    try {
+      if (!firmaAliado) {
+        setMessage({ type: 'error', text: 'Debe marcar la casilla de firma del aliado para continuar' });
+        return;
+      }
+
+      console.log('Attempting to register convenio with data:', {
+        aliadoData,
+        selectedEscuela,
+        selectedNecesidad,
+        firmaAliado
+      });
+
+      if (!aliadoData?.idAliado || !selectedEscuela?.CCT || !selectedNecesidad?.Sub_categoria) {
+        console.error('Missing required data:', {
+          idAliado: aliadoData?.idAliado,
+          CCT: selectedEscuela?.CCT,
+          categoria: selectedNecesidad?.Sub_categoria
+        });
+        throw new Error('Faltan datos necesarios para registrar el convenio');
+      }
+
+      const convenioData = {
+        CCT: selectedEscuela.CCT,
+        idAliado: aliadoData.idAliado,
+        categoria: selectedNecesidad.Sub_categoria,
+        firma_aliado: firmaAliado
+      };
+
+      console.log('Sending convenio data to server:', convenioData);
+
+      const response = await fetch('http://localhost:1000/api/convenioRegistrar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(convenioData),
+      });
+
+      console.log('Server response status:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error response from server:', errorData);
+        throw new Error(`Error al registrar el convenio: ${errorData.error || 'Error desconocido'}`);
+      }
+
+      const responseData = await response.json();
+      console.log('Convenio created successfully:', responseData);
+
+      setShowConvenioModal(false);
+      setFirmaAliado(false);
+      setSelectedNecesidad(null);
+      setMessage({ type: 'success', text: 'Convenio registrado exitosamente' });
+    } catch (error) {
+      console.error('Error al registrar convenio:', error);
+      setMessage({ type: 'error', text: `Error al registrar el convenio: ${error.message}` });
+    }
+  };
+
+  // Function to clear message
+  const clearMessage = () => {
+    setMessage(null);
+  };
+
+  // Close the convenio modal
+  const closeConvenioModal = () => {
+    setShowConvenioModal(false);
+    setSelectedNecesidad(null);
+    setFirmaAliado(false);
   };
 
   if (loading) {
@@ -211,6 +289,15 @@ const EscuelasAliado = () => {
                             {necesidad.Estado_validacion ? 'Validado' : 'Pendiente de validación'}
                           </span>
                         </p>
+                        <button 
+                          className={styles.colaborarBtn}
+                          onClick={() => {
+                            setSelectedNecesidad(necesidad);
+                            setShowConvenioModal(true);
+                          }}
+                        >
+                          Colaborar con esta escuela
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -220,6 +307,76 @@ const EscuelasAliado = () => {
             <div className={styles.modalFooter}>
               <button className={styles.closeModalButton} onClick={closeNecesidadesModal}>
                 Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal for convenio registration */}
+      {showConvenioModal && selectedNecesidad && selectedEscuela && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <div className={styles.modalHeader}>
+              <h3>Registrar Convenio</h3>
+              <button className={styles.closeButton} onClick={closeConvenioModal}>
+                &times;
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              {message && (
+                <div className={`${styles.messageContainer} ${styles[message.type]}`}>
+                  <p>{message.text}</p>
+                  <button className={styles.closeMessageButton} onClick={clearMessage}>
+                    &times;
+                  </button>
+                </div>
+              )}
+              <div className={styles.convenioForm}>
+                <div className={styles.formGroup}>
+                  <label>Nombre de la Escuela:</label>
+                  <p>{selectedEscuela.nombre}</p>
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Aliado:</label>
+                  <p>{aliadoData?.institucion}</p>
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Categoría:</label>
+                  <p>{selectedNecesidad.Sub_categoria}</p>
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Firma de la Escuela:</label>
+                  <p>Pendiente</p>
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Validación de la Organización:</label>
+                  <p>Pendiente</p>
+                </div>
+                <div className={styles.formGroup}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={firmaAliado}
+                      onChange={(e) => setFirmaAliado(e.target.checked)}
+                      required
+                    />
+                    Firma del Aliado *
+                  </label>
+                  <p className={styles.requiredNote}>* Campo obligatorio</p>
+                </div>
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button 
+                className={styles.registrarConvenioBtn}
+                onClick={handleConvenioRegistration}
+                disabled={!firmaAliado}
+              >
+                Registrar Convenio
+              </button>
+              <button className={styles.closeModalButton} onClick={closeConvenioModal}>
+                Cancelar
               </button>
             </div>
           </div>

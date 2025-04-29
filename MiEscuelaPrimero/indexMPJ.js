@@ -30,6 +30,7 @@ const EscrituraPublicaModel = require('./models/mEscritura_Publica.js');
 const ConstanciaFiscalModel = require('./models/mConstancia_Fiscal.js');
 const NecesidadModel = require('./models/mNecesidad.js');
 const ApoyoModel = require('./models/mApoyo.js');
+const Convenio = require('./models/Convenio');
 
 app.use(express.static('public')); //Para poder servir archivos estáticos como HTML, CSS, JS, etc.
 app.use(express.json()); //Para poder recibir datos en formato JSON en el body de las peticiones
@@ -1768,7 +1769,189 @@ app.get('/api/apoyos/aliado/:idAliado', async (req, res) => {
     }
 });
 
+// Enpoints de convenio 
+
+//Registro de nuevo convenio
+app.post('/api/convenioRegistrar', async (req, res) => {
+    try {
+        const { CCT, idAliado, categoria, firma_escuela, firma_aliado } = req.body;
+        console.log('Received convenio registration request:', { CCT, idAliado, categoria, firma_escuela, firma_aliado });
+        
+        if (!CCT || !idAliado || !categoria) {
+            console.log('Missing required fields:', { CCT, idAliado, categoria });
+            return res.status(400).json({ error: 'Faltan campos requeridos' });
+        }
+
+        // Verify that the escuela exists
+        const escuela = await EscuelaModel.getEscuelaById(CCT);
+        if (!escuela) {
+            console.log('Escuela not found:', CCT);
+            return res.status(404).json({ error: 'Escuela no encontrada' });
+        }
+
+        // Verify that the aliado exists
+        const aliado = await AliadoModel.getAliadoById(idAliado);
+        if (!aliado) {
+            console.log('Aliado not found:', idAliado);
+            return res.status(404).json({ error: 'Aliado no encontrado' });
+        }
+
+        const idConvenio = await Convenio.create(
+            CCT,
+            idAliado,
+            categoria,
+            escuela.nombre,
+            aliado.institucion,
+            firma_escuela || false,
+            firma_aliado || false
+        );
+        console.log('Convenio created successfully:', idConvenio);
+        
+        res.status(201).json({ idConvenio });
+    } catch (error) {
+        console.error('Error al crear convenio:', error);
+        res.status(500).json({ error: 'Error al crear convenio', details: error.message });
+    }
+});
+
+//Actualizar firma del aliado
+
+app.put('/api/convenios/firma-aliado', async (req, res) => {
+    try {
+        const { CCT, idAliado, idConvenio } = req.body;
+        console.log('Received firma aliado request:', { CCT, idAliado, idConvenio });
+        
+        if (!CCT || !idAliado || !idConvenio) {
+            return res.status(400).json({ error: 'Faltan campos requeridos' });
+        }
+
+        const success = await Convenio.updateFirmaAliado(CCT, idAliado, idConvenio);
+        if (!success) {
+            return res.status(404).json({ error: 'Convenio no encontrado' });
+        }
+        res.json({ message: 'Firma del aliado actualizada' });
+    } catch (error) {
+        console.error('Error al actualizar firma del aliado:', error);
+        res.status(500).json({ error: 'Error al actualizar firma del aliado', details: error.message });
+    }
+});
+
+//Actualizar firma de la escuela
+app.put('/api/convenios/firma-escuela', async (req, res) => {
+    try {
+        const { CCT, idAliado, idConvenio } = req.body;
+        console.log('Received firma escuela request:', { CCT, idAliado, idConvenio });
+        
+        if (!CCT || !idAliado || !idConvenio) {
+            return res.status(400).json({ error: 'Faltan campos requeridos' });
+        }
+
+        const success = await Convenio.updateFirmaEscuela(CCT, idAliado, idConvenio);
+        if (!success) {
+            return res.status(404).json({ error: 'Convenio no encontrado' });
+        }
+        res.json({ message: 'Firma de la escuela actualizada' });
+    } catch (error) {
+        console.error('Error al actualizar firma de la escuela:', error);
+        res.status(500).json({ error: 'Error al actualizar firma de la escuela', details: error.message });
+    }
+});
+
+//Actualizar validacion de admin
+app.put('/api/convenios/validacion-admin', async (req, res) => {
+    try {
+        const { CCT, idAliado, idConvenio } = req.body;
+        console.log('Received validacion admin request:', { CCT, idAliado, idConvenio });
+        
+        if (!CCT || !idAliado || !idConvenio) {
+            return res.status(400).json({ error: 'Faltan campos requeridos' });
+        }
+
+        const success = await Convenio.updateValidacionAdmin(CCT, idAliado, idConvenio);
+        if (!success) {
+            return res.status(404).json({ error: 'Convenio no encontrado' });
+        }
+        res.json({ message: 'Validación del administrador actualizada' });
+    } catch (error) {
+        console.error('Error al actualizar validación del administrador:', error);
+        res.status(500).json({ error: 'Error al actualizar validación del administrador', details: error.message });
+    }
+});
+//obtener todos los convenios
+app.get('/api/convenioGetAll', async (req, res) => {
+    try {
+        const convenios = await Convenio.getAll();
+        res.json(convenios);
+    } catch (error) {
+        console.error('Error al obtener todos los convenios:', error);
+        res.status(500).json({ error: 'Error al obtener todos los convenios' });
+    }
+});
+
+//obtener convenios por idAliado
+app.get('/api/convenio/aliado/:idAliado', async (req, res) => {
+    try {
+        const { idAliado } = req.params;
+        console.log('Fetching convenios for aliado:', idAliado);
+        
+        if (!idAliado) {
+            console.log('Missing idAliado parameter');
+            return res.status(400).json({ error: 'ID del aliado es requerido' });
+        }
+
+        // Verify aliado exists first
+        const aliado = await AliadoModel.getAliadoById(idAliado);
+        if (!aliado) {
+            console.log('Aliado not found:', idAliado);
+            return res.status(404).json({ error: 'Aliado no encontrado' });
+        }
+
+        console.log('Found aliado:', aliado.nombre);
+
+        const convenios = await Convenio.getByAliado(idAliado);
+        console.log('Raw convenios result:', convenios);
+        
+        if (!convenios || convenios.length === 0) {
+            console.log('No convenios found for aliado:', idAliado);
+            return res.status(404).json({ error: 'No se encontraron convenios para este aliado' });
+        }
+
+        console.log(`Found ${convenios.length} convenios for aliado:`, idAliado);
+        res.json(convenios);
+    } catch (error) {
+        console.error('Error al obtener convenios del aliado:', error);
+        res.status(500).json({ error: 'Error al obtener convenios del aliado', details: error.message });
+    }
+});
+
+// Obtener convenios por CCT (escuela)
+app.get('/api/convenio/escuela/:CCT', async (req, res) => {
+    try {
+        const { CCT } = req.params;
+        if (!CCT) {
+            return res.status(400).json({ error: 'CCT es requerido' });
+        }
+
+        // Verificar que la escuela existe
+        const escuela = await EscuelaModel.getEscuelaById(CCT);
+        if (!escuela) {
+            return res.status(404).json({ error: 'Escuela no encontrada' });
+        }
+
+        const convenios = await Convenio.getByCCT(CCT);
+        if (!convenios || convenios.length === 0) {
+            return res.status(404).json({ error: 'No se encontraron convenios para esta escuela' });
+        }
+
+        res.json(convenios);
+    } catch (error) {
+        console.error('Error al obtener convenios por escuela:', error);
+        res.status(500).json({ error: 'Error al obtener convenios por escuela', details: error.message });
+    }
+});
+
 //Puerto de escucha
 app.listen(port, () =>{
     console.log(`Servidor en http://localhost:${port}`);
 })
+

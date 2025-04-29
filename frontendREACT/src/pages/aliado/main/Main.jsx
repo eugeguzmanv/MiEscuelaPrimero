@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../../../components/Header';
 import PerfilAliado from './PerfilAliado';
 import EscuelasAliado from './EscuelasAliado';
@@ -8,6 +8,35 @@ import styles from './Main.module.css';
 
 const Main = () => {
   const [activeTab, setActiveTab] = useState('perfil');
+  const [aliadoData, setAliadoData] = useState(null);
+
+  useEffect(() => {
+    const fetchAliadoData = async () => {
+      try {
+        const userEmail = sessionStorage.getItem('userEmail');
+        console.log('User email from session:', userEmail);
+        
+        if (!userEmail) {
+          console.log('No user email found in session');
+          return;
+        }
+
+        const response = await fetch(`http://localhost:1000/api/aliadoCor/${userEmail}`);
+        if (!response.ok) {
+          console.error('Error fetching aliado:', response);
+          return;
+        }
+
+        const data = await response.json();
+        console.log('Aliado data received:', data);
+        setAliadoData(data);
+      } catch (error) {
+        console.error('Error fetching aliado data:', error);
+      }
+    };
+
+    fetchAliadoData();
+  }, []);
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -69,12 +98,12 @@ const Main = () => {
           )}
           {activeTab === 'aliados' && (
             <div id="aliados-section" className={styles.contentSection}>
-              <EscuelasAliado />
+              <EscuelasAliado aliadoData={aliadoData} />
             </div>
           )}
           {activeTab === 'proyectos' && (
             <div id="proyectos-section" className={styles.contentSection}>
-              <ProyectosAliado />
+              <ProyectosAliado aliadoData={aliadoData} />
             </div>
           )}
           {activeTab === 'apoyos' && (

@@ -117,7 +117,7 @@ const Registro = () => {
           navigate('/aliado/registro-persona-moral', { 
             state: { aliadoId: idAliado } 
           });
-        } else {
+    } else {
           console.error("API error:", data);
           setError(data.error || 'Error al registrar aliado');
         }
@@ -185,7 +185,7 @@ const Registro = () => {
         
         console.log("User session data saved, navigating to main page");
         // Navigate to the main page
-        navigate('/aliado/main');
+      navigate('/aliado/main');
       } else {
         // Handle error from API
         console.error("API error:", data);
