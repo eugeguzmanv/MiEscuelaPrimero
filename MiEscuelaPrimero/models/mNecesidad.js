@@ -55,8 +55,41 @@ async function getNecesidadById(idNecesidad) {
     }
 }
 
+// Update validation status of a necesidad
+async function updateValidacionEstado(idNecesidad, Estado_validacion) {
+    try {
+        const result = await db('Necesidad')
+            .where({ idNecesidad })
+            .update({ Estado_validacion });
+        
+        if (result === 0) {
+            throw new Error('No se encontró la necesidad para actualizar');
+        }
+        
+        return true;
+    } catch (error) {
+        throw error;
+    }
+}
+
+// Get all CCTs by categoria in necesidades
+async function getEscuelasByCategoriaNecesidad(categoria) {
+    try {
+        // Get unique CCTs from Necesidad where Categoria matches
+        const rows = await db('Necesidad')
+            .select('CCT')
+            .where({ Categoria: categoria })
+            .groupBy('CCT');
+        return rows.map(row => row.CCT);
+    } catch (error) {
+        throw error;
+    }
+}
+
 module.exports = {
     createNecesidad,
     getNecesidadesByCCT,
-    getNecesidadById
+    getNecesidadById,
+    updateValidacionEstado,
+    getEscuelasByCategoriaNecesidad
 };

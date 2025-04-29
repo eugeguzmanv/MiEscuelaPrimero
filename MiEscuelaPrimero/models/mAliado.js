@@ -69,6 +69,63 @@ const AliadoModel = {
         } catch (error) {
             throw error;
         }
+    },
+    getByInstitucion: async (institucion) => {
+        try {
+            return await db('Aliado')
+                .where('institucion', 'like', `%${institucion}%`);
+        } catch (error) {
+            throw error;
+        }
+    },
+    getBySector: async (sector) => {
+        try {
+            return await db('Aliado')
+                .where('sector', 'like', `%${sector}%`);
+        } catch (error) {
+            throw error;
+        }
+    },
+    getByMunicipio: async (municipio) => {
+        try {
+            return await db('Aliado')
+                .where('municipio', 'like', `%${municipio}%`);
+        } catch (error) {
+            throw error;
+        }
+    },
+    getByCategoriaApoyo: async (categoria) => {
+        try {
+            return await db('Aliado')
+                .join('Apoyo', 'Aliado.idAliado', '=', 'Apoyo.idAliado')
+                .where('Apoyo.Categoria', 'like', `%${categoria}%`)
+                .orWhere('Apoyo.Sub_categoria', 'like', `%${categoria}%`)
+                .distinct('Aliado.*');
+        } catch (error) {
+            throw error;
+        }
+    },
+    // Get aliados with apoyos matching escuela's necesidades subcategorias
+    getAliadosByMatchingApoyos: async function(CCT) {
+        try {
+            // First, get all necesidades subcategorias for the escuela
+            const necesidadesSubcategorias = await db('Necesidad')
+                .where('CCT', CCT)
+                .select('Sub_categoria');
+
+            // Extract subcategorias into an array
+            const subcategorias = necesidadesSubcategorias.map(necesidad => necesidad.Sub_categoria);
+
+            // Get aliados that have apoyos matching any of these subcategorias
+            const aliados = await db('Aliado')
+                .distinct('Aliado.*')
+                .join('Apoyo', 'Aliado.idAliado', '=', 'Apoyo.idAliado')
+                .whereIn('Apoyo.Sub_categoria', subcategorias);
+
+            return aliados;
+        } catch (error) {
+            throw error;
+        }
     }
 };
 

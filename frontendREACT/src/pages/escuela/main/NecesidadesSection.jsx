@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import styles from './NecesidadesSection.module.css';
 
-const NecesidadesSection = () => {
+const NecesidadesSection = ({ escuelaData }) => {
   const [necesidades, setNecesidades] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -13,7 +13,6 @@ const NecesidadesSection = () => {
     Fecha: '',
     Descripcion: ''
   });
-  const [cct, setCct] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
   const location = useLocation();
 
@@ -125,15 +124,20 @@ const NecesidadesSection = () => {
     return date.toLocaleDateString('es-MX');
   };
 
-  // Function to find school CCT from session storage or URL
+  // Function to find school CCT from escuelaData prop or URL
   useEffect(() => {
-    const fetchCCT = async () => {
+    const fetchNecesidadesData = async () => {
       try {
-        // Try to get the CCT from URL parameters
-        const params = new URLSearchParams(location.search);
-        let schoolCCT = params.get('cct');
+        // Try to get CCT from props first
+        let schoolCCT = escuelaData?.CCT;
         
-        // If no CCT in URL, try to get the user email from session storage
+        // If no CCT in props, try URL parameters
+        if (!schoolCCT) {
+          const params = new URLSearchParams(location.search);
+          schoolCCT = params.get('cct');
+        }
+        
+        // If still no CCT, try session storage
         if (!schoolCCT) {
           const userEmail = sessionStorage.getItem('userEmail');
           const userProfile = sessionStorage.getItem('userProfile');
@@ -150,25 +154,23 @@ const NecesidadesSection = () => {
           }
           
           const representanteData = await representanteResponse.json();
-          
-          // Get the CCT from the representante data
           schoolCCT = representanteData.CCT;
-          
-          if (!schoolCCT) {
-            throw new Error('No se encontró el CCT de la escuela asociada');
-          }
         }
         
-        setCct(schoolCCT);
-        fetchNecesidades(schoolCCT);
-      } catch (error) {
-        setError(error.message || 'Error al cargar datos de la escuela');
+        if (!schoolCCT) {
+          throw new Error('No se encontró el CCT de la escuela');
+        }
+        
+        await fetchNecesidades(schoolCCT);
+      } catch (err) {
+        setError(err.message || 'Error al cargar datos de la escuela');
+      } finally {
         setIsLoading(false);
       }
     };
     
-    fetchCCT();
-  }, [location.search]);
+    fetchNecesidadesData();
+  }, [location.search, escuelaData]);
 
   // Fetch necesidades from the API
   const fetchNecesidades = async (schoolCCT) => {
@@ -197,17 +199,23 @@ const NecesidadesSection = () => {
   // Handle input changes for the form
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-
-    // If category changes, reset subcategory
+    console.log(`Handling input change for ${name}:`, value);
+    
     if (name === 'Categoria') {
-      setFormData(prev => ({
-        ...prev,
-        Sub_categoria: ''
-      }));
+      // When category changes, reset subcategory and log available subcategories
+      const availableSubcategories = categorias[value] || [];
+      console.log('Available subcategories:', availableSubcategories);
+      
+      setFormData({
+        ...formData,
+        Categoria: value,
+        Sub_categoria: '' // Reset subcategory when category changes
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
     }
   };
 
@@ -215,26 +223,34 @@ const NecesidadesSection = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!cct) {
-      setError('No se encontró el CCT de la escuela');
-      return;
-    }
-    
     try {
-      // Format date to YYYY-MM-DD string format to match database expectations
-      const formattedDate = formData.Fecha;
+      console.log('Form data before validation:', formData);
+      console.log('escuelaData:', escuelaData);
+
+      // Check each field individually and collect missing fields
+      const missingFields = [];
+      if (!formData.Categoria) missingFields.push('Categoría');
+      if (!formData.Sub_categoria) missingFields.push('Subcategoría');
+      if (!formData.Fecha) missingFields.push('Fecha');
+      if (!formData.Descripcion) missingFields.push('Descripción');
+      if (!escuelaData?.CCT) missingFields.push('CCT');
+
+      if (missingFields.length > 0) {
+        throw new Error(`Los siguientes campos son obligatorios: ${missingFields.join(', ')}`);
+      }
       
       // Create a payload with all required fields
       const payload = {
         Categoria: formData.Categoria,
         Sub_categoria: formData.Sub_categoria,
-        Fecha: formattedDate,
+        Fecha: formData.Fecha,
         Descripcion: formData.Descripcion,
-        CCT: cct,
-        Estado_validacion: false // Explicitly setting validation status to false
+        CCT: escuelaData.CCT,
+        Estado_validacion: false
       };
       
-      // Let's try with a more straightforward and controlled approach
+      console.log('Submitting necesidad with payload:', payload);
+      
       const response = await fetch('http://localhost:1000/api/registroNecesidad', {
         method: 'POST',
         headers: {
@@ -243,20 +259,18 @@ const NecesidadesSection = () => {
         body: JSON.stringify(payload),
       });
       
+      const responseData = await response.text();
+      let errorData;
+      
+      try {
+        errorData = JSON.parse(responseData);
+      } catch (e) {
+        // If response is not JSON, use text as error message
+        errorData = { error: responseData };
+      }
+      
       if (!response.ok) {
-        const errorText = await response.text();
-        
-        let errorData;
-        try {
-          errorData = JSON.parse(errorText);
-        } catch (e) {
-          // Silently handle parse error
-        }
-        
         throw new Error(errorData?.error || 'Error al registrar la necesidad');
-      } else {
-        // Parse the successful response
-        await response.json();
       }
       
       // Reset form and hide modal
@@ -273,8 +287,9 @@ const NecesidadesSection = () => {
       setTimeout(() => setSuccessMessage(''), 3000);
       
       // Fetch updated list of necesidades
-      fetchNecesidades(cct);
+      fetchNecesidades(escuelaData.CCT);
     } catch (error) {
+      console.error('Error submitting necesidad:', error);
       setError(error.message || 'Error al registrar la necesidad');
     }
   };
@@ -285,11 +300,14 @@ const NecesidadesSection = () => {
       return <option value="">Selecciona primero una categoría</option>;
     }
     
-    return categorias[formData.Categoria].map(subcategoria => (
-      <option key={subcategoria} value={subcategoria}>
-        {subcategoria}
-      </option>
-    ));
+    return [
+      <option key="default" value="">Selecciona una subcategoría</option>,
+      ...categorias[formData.Categoria].map(subcategoria => (
+        <option key={subcategoria} value={subcategoria}>
+          {subcategoria}
+        </option>
+      ))
+    ];
   };
 
   return (

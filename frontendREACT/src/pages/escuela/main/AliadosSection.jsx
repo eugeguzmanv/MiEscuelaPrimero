@@ -17,42 +17,154 @@ const AliadosSection = ({ escuelaData }) => {
   const [selectedApoyo, setSelectedApoyo] = useState(null);
   const [firmaEscuela, setFirmaEscuela] = useState(false);
   const [message, setMessage] = useState(null);
+  const [isMatchingSearch, setIsMatchingSearch] = useState(false);
+
+  // Replace the single search states with individual ones
+  const [searchInstitucion, setSearchInstitucion] = useState('');
+  const [searchSector, setSearchSector] = useState('');
+  const [searchMunicipio, setSearchMunicipio] = useState('');
+  const [searchCategoria, setSearchCategoria] = useState('');
+
+  // Replace handleSearch with individual search handlers
+  const handleSearchInstitucion = async () => {
+    if (!searchInstitucion) return;
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch(`http://localhost:1000/api/aliado/institucion/${encodeURIComponent(searchInstitucion)}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error('No se encontraron aliados con esa institución');
+      setAliados(Array.isArray(data) ? data : [data]);
+    } catch (err) {
+      setError(err.message);
+      setAliados([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearchSector = async () => {
+    if (!searchSector) return;
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch(`http://localhost:1000/api/aliado/sector/${encodeURIComponent(searchSector)}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error('No se encontraron aliados en ese sector');
+      setAliados(Array.isArray(data) ? data : [data]);
+    } catch (err) {
+      setError(err.message);
+      setAliados([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearchMunicipio = async () => {
+    if (!searchMunicipio) return;
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch(`http://localhost:1000/api/aliado/municipio/${encodeURIComponent(searchMunicipio)}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error('No se encontraron aliados en ese municipio');
+      setAliados(Array.isArray(data) ? data : [data]);
+    } catch (err) {
+      setError(err.message);
+      setAliados([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearchCategoria = async () => {
+    if (!searchCategoria) return;
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch(`http://localhost:1000/api/aliado/categoria-apoyo/${encodeURIComponent(searchCategoria)}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error('No se encontraron aliados con apoyos en esa categoría');
+      setAliados(Array.isArray(data) ? data : [data]);
+    } catch (err) {
+      setError(err.message);
+      setAliados([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearchMatching = async () => {
+    if (!escuelaData?.CCT) {
+      setError('No se pudo obtener la información de la escuela');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setIsMatchingSearch(true);
+
+    try {
+      const response = await fetch(`http://localhost:1000/api/aliados/matching-apoyos/${escuelaData.CCT}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'No se encontraron aliados coincidentes');
+      }
+
+      setAliados(data.aliados || []);
+    } catch (err) {
+      setError(err.message);
+      setAliados([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClearSearch = async () => {
+    setSearchInstitucion('');
+    setSearchSector('');
+    setSearchMunicipio('');
+    setSearchCategoria('');
+    fetchAliados();
+  };
+
+  const fetchAliados = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch('http://localhost:1000/api/aliados');
+      
+      const responseText = await response.text();
+      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        setDebugInfo({ status: response.status, text: responseText });
+        throw new Error(`Failed to parse response: ${parseError.message}`);
+      }
+      
+      if (!response.ok) {
+        setDebugInfo({ status: response.status, data });
+        throw new Error(`Error: ${response.status}`);
+      }
+      
+      if (data.aliados && Array.isArray(data.aliados)) {
+        setAliados(data.aliados);
+      } else {
+        setDebugInfo({ invalidData: data });
+        throw new Error('Invalid data format');
+      }
+    } catch (error) {
+      setError('No se pudieron cargar los aliados. Por favor, intente nuevamente más tarde.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchAliados = async () => {
-      try {
-        setLoading(true);
-        
-        const response = await fetch('http://localhost:1000/api/aliados');
-        
-        const responseText = await response.text();
-        
-        let data;
-        try {
-          data = JSON.parse(responseText);
-        } catch (parseError) {
-          setDebugInfo({ status: response.status, text: responseText });
-          throw new Error(`Failed to parse response: ${parseError.message}`);
-        }
-        
-        if (!response.ok) {
-          setDebugInfo({ status: response.status, data });
-          throw new Error(`Error: ${response.status}`);
-        }
-        
-        if (data.aliados && Array.isArray(data.aliados)) {
-          setAliados(data.aliados);
-        } else {
-          setDebugInfo({ invalidData: data });
-          throw new Error('Invalid data format');
-        }
-      } catch (error) {
-        setError('No se pudieron cargar los aliados. Por favor, intente nuevamente más tarde.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchAliados();
   }, []);
 
@@ -181,6 +293,63 @@ const AliadosSection = ({ escuelaData }) => {
 
   return (
     <div className={styles.aliadosContainer}>
+      <div className={styles.searchMenu}>
+        <div className={styles.searchGroup}>
+          <input
+            type="text"
+            placeholder="Buscar por institución"
+            value={searchInstitucion}
+            onChange={(e) => setSearchInstitucion(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearchInstitucion()}
+          />
+          <button type="button" onClick={handleSearchInstitucion}>Buscar</button>
+        </div>
+        <div className={styles.searchGroup}>
+          <input
+            type="text"
+            placeholder="Buscar por sector"
+            value={searchSector}
+            onChange={(e) => setSearchSector(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearchSector()}
+          />
+          <button type="button" onClick={handleSearchSector}>Buscar</button>
+        </div>
+        <div className={styles.searchGroup}>
+          <input
+            type="text"
+            placeholder="Buscar por municipio"
+            value={searchMunicipio}
+            onChange={(e) => setSearchMunicipio(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearchMunicipio()}
+          />
+          <button type="button" onClick={handleSearchMunicipio}>Buscar</button>
+        </div>
+        <div className={styles.searchGroup}>
+          <input
+            type="text"
+            placeholder="Buscar por categoría de apoyo"
+            value={searchCategoria}
+            onChange={(e) => setSearchCategoria(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearchCategoria()}
+          />
+          <button type="button" onClick={handleSearchCategoria}>Buscar</button>
+        </div>
+        <button 
+          type="button" 
+          onClick={handleSearchMatching} 
+          className={`${styles.matchingBtn} ${isMatchingSearch ? styles.active : ''}`}
+        >
+          Mostrar aliados con apoyos coincidentes
+        </button>
+        <button 
+          type="button" 
+          onClick={handleClearSearch} 
+          className={styles.clearBtn}
+        >
+          Limpiar filtros
+        </button>
+      </div>
+
       {message && (
         <div className={`${styles.messageContainer} ${styles[message.type]}`}>
           <p>{message.text}</p>
@@ -203,7 +372,9 @@ const AliadosSection = ({ escuelaData }) => {
       )}
       
       {!error && aliados.length === 0 ? (
-        <div className={styles.noAliados}>No hay aliados disponibles</div>
+        <div className={styles.noAliados}>
+          {loading ? 'No se encontraron aliados para esta búsqueda' : 'No hay aliados disponibles'}
+        </div>
       ) : (
         <div className={styles.aliadosGrid}>
           {aliados.map((aliado, index) => (
@@ -218,22 +389,22 @@ const AliadosSection = ({ escuelaData }) => {
               )}
               
               {aliado.sector && (
-                <div className={styles.infoGroup}>
-                  <label>Sector:</label>
+          <div className={styles.infoGroup}>
+            <label>Sector:</label>
                   <p>{aliado.sector}</p>
-                </div>
+          </div>
               )}
               
               {aliado.direccion && (
-                <div className={styles.direccionGroup}>
-                  <label>Dirección:</label>
-                  <div className={styles.direccionDetails}>
+          <div className={styles.direccionGroup}>
+            <label>Dirección:</label>
+            <div className={styles.direccionDetails}>
                     {aliado.direccion.calle && <p>Calle: {aliado.direccion.calle}</p>}
                     {aliado.direccion.numero && <p>Número: {aliado.direccion.numero}</p>}
                     {aliado.direccion.colonia && <p>Colonia: {aliado.direccion.colonia}</p>}
                     {aliado.direccion.municipio && <p>Municipio: {aliado.direccion.municipio}</p>}
-                  </div>
-                </div>
+            </div>
+          </div>
               )}
               
               {aliado.descripcion && (
@@ -244,7 +415,7 @@ const AliadosSection = ({ escuelaData }) => {
               )}
               
               {aliado.correo && (
-                <div className={styles.infoGroup}>
+          <div className={styles.infoGroup}>
                   <label>Correo:</label>
                   <p>{aliado.correo}</p>
                 </div>
@@ -255,7 +426,7 @@ const AliadosSection = ({ escuelaData }) => {
                   Ver Apoyos
                 </button>
               </div>
-            </div>
+          </div>
           ))}
         </div>
       )}
@@ -313,7 +484,7 @@ const AliadosSection = ({ escuelaData }) => {
                   ))}
                 </div>
               )}
-            </div>
+          </div>
             <div className={styles.modalFooter}>
               <button className={styles.closeModalButton} onClick={closeApoyosModal}>
                 Cerrar
@@ -354,7 +525,7 @@ const AliadosSection = ({ escuelaData }) => {
                 <div className={styles.formGroup}>
                   <label>Validación de la Organización:</label>
                   <p>Pendiente</p>
-                </div>
+          </div>
                 <div className={styles.formGroup}>
                   <label>
                     <input
@@ -366,9 +537,9 @@ const AliadosSection = ({ escuelaData }) => {
                     Firma de la Escuela *
                   </label>
                   <p className={styles.requiredNote}>* Campo obligatorio</p>
-                </div>
-              </div>
-            </div>
+          </div>
+        </div>
+          </div>
             <div className={styles.modalFooter}>
               <button 
                 className={styles.registrarConvenioBtn}

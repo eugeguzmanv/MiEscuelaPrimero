@@ -88,4 +88,93 @@
   .proyectoCard h3 {
     font-size: 16px;
   }
+}
+
+.categoriaHeader {
+  color: #2C8B3F;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.statusGroup {
+  margin: 15px 0 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.statusCompleted {
+  background-color: #e8f5e9;
+  color: #2C8B3F;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-left: 8px;
+  display: inline-block;
+}
+
+.statusPending {
+  background-color: #fff3e0;
+  color: #FF6B00;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-left: 8px;
+  display: inline-block;
+}
+
+.validarBtn {
+  background: #FF6B00;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  margin-top: 10px;
+  width: auto;
+  min-width: 120px;
+  max-width: 150px;
+  display: inline-block;
+}
+
+.validarBtn:hover {
+  background: #E65000;
+}
+
+.messageContainer {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #d4edda;
+  color: #155724;
+  padding: 15px 20px;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  animation: slideIn 0.3s ease-out;
+  min-width: 300px;
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 } 

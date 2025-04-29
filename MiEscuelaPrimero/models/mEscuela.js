@@ -94,6 +94,29 @@ const EscuelaModel = {
         } catch (error) {
             throw error;
         }
+    },
+
+    // Get schools with necesidades matching aliado's apoyos subcategorias
+    getEscuelasByMatchingNecesidades: async function getEscuelasByMatchingNecesidades(idAliado) {
+        try {
+            // First, get all apoyos subcategorias for the aliado
+            const apoyosSubcategorias = await db('Apoyo')
+                .where('idAliado', idAliado)
+                .select('Sub_categoria');
+
+            // Extract subcategorias into an array
+            const subcategorias = apoyosSubcategorias.map(apoyo => apoyo.Sub_categoria);
+
+            // Get schools that have necesidades matching any of these subcategorias
+            const escuelas = await db('Escuela')
+                .distinct('Escuela.*')
+                .join('Necesidad', 'Escuela.CCT', '=', 'Necesidad.CCT')
+                .whereIn('Necesidad.Sub_categoria', subcategorias);
+
+            return escuelas;
+        } catch (error) {
+            throw error;
+        }
     }
 };
 

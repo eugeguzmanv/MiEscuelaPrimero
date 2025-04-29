@@ -1704,6 +1704,42 @@ app.get('/api/necesidades/escuela/:CCT', async (req, res) => {
     }
 });
 
+// Endpoint para actualizar el estado de validación de una necesidad
+app.put('/api/necesidades/validar/:idNecesidad', async (req, res) => {
+    try {
+        const { idNecesidad } = req.params;
+        const { Estado_validacion } = req.body;
+
+        // Validar que el idNecesidad no esté vacío
+        if (!idNecesidad) {
+            return res.status(400).json({ error: 'El ID de la necesidad es obligatorio' });
+        }
+
+        // Validar que el estado de validación esté presente
+        if (Estado_validacion === undefined) {
+            return res.status(400).json({ error: 'El estado de validación es obligatorio' });
+        }
+
+        // Verificar que la necesidad exista
+        const necesidad = await NecesidadModel.getNecesidadById(idNecesidad);
+        if (!necesidad) {
+            return res.status(404).json({ error: 'La necesidad no existe' });
+        }
+
+        // Actualizar el estado de validación
+        await NecesidadModel.updateValidacionEstado(idNecesidad, Estado_validacion);
+        
+        return res.status(200).json({ 
+            message: 'Estado de validación actualizado exitosamente',
+            idNecesidad,
+            Estado_validacion
+        });
+    } catch (error) {
+        console.error('Error al actualizar estado de validación:', error);
+        return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 //============ENPOINTS DE APOYO============//
 // Endpoint para registrar un nuevo apoyo
 app.post('/api/registroApoyo', async (req, res) => {
@@ -1768,6 +1804,23 @@ app.get('/api/apoyos/aliado/:idAliado', async (req, res) => {
         return res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+// Endpoint para validar un apoyo
+app.put('/api/apoyos/validar/:idApoyo', async (req, res) => {
+    try {
+        const { idApoyo } = req.params;
+        const result = await ApoyoModel.updateValidacionEstado(idApoyo);
+        
+        if (result) {
+            res.json({ success: true, message: 'Apoyo validado exitosamente' });
+        } else {
+            res.status(404).json({ success: false, message: 'Apoyo no encontrado' });
+        }
+    } catch (error) {
+        console.error('Error al validar apoyo:', error);
+        res.status(500).json({ success: false, message: 'Error al validar el apoyo', error: error.message });
+    }
+});
+
 
 // Enpoints de convenio 
 
@@ -1877,7 +1930,9 @@ app.put('/api/convenios/validacion-admin', async (req, res) => {
         res.status(500).json({ error: 'Error al actualizar validación del administrador', details: error.message });
     }
 });
-//obtener todos los convenios
+
+
+// Endpoint para obtener todos los convenios
 app.get('/api/convenioGetAll', async (req, res) => {
     try {
         const convenios = await Convenio.getAll();
@@ -1950,8 +2005,167 @@ app.get('/api/convenio/escuela/:CCT', async (req, res) => {
     }
 });
 
+// Obtener convenios no validados por admin
+app.get('/api/convenios/no-validados', async (req, res) => {
+    try {
+        const convenios = await Convenio.getNoValidados();
+        res.json(convenios);
+    } catch (error) {
+        console.error('Error al obtener convenios no validados:', error);
+        res.status(500).json({ error: 'Error al obtener convenios no validados' });
+    }
+});
+
+// Endpoint to get all schools with at least one necesidad in a given categoria
+app.get('/api/escuela/categoria-necesidad/:categoria', async (req, res) => {
+    try {
+        const { categoria } = req.params;
+        if (!categoria) {
+            return res.status(400).json({ error: 'El campo categoria es obligatorio' });
+        }
+        // Get CCTs with at least one necesidad in this categoria
+        const ccts = await NecesidadModel.getEscuelasByCategoriaNecesidad(categoria);
+        if (!ccts.length) {
+            return res.status(404).json({ error: 'No se encontraron escuelas con necesidades en esta categoría' });
+        }
+        // Get full school info for each CCT
+        const escuelas = await Promise.all(ccts.map(cct => EscuelaModel.getEscuelaById(cct)));
+        res.status(200).json(escuelas.filter(e => !!e));
+    } catch (error) {
+        console.error('Error al buscar escuelas por categoria de necesidad:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 //Puerto de escucha
 app.listen(port, () =>{
     console.log(`Servidor en http://localhost:${port}`);
 })
+
+// Nuevos endpoints de búsqueda de aliados
+// Búsqueda por institución
+app.get('/api/aliado/institucion/:institucion', async (req, res) => {
+    try {
+        const aliados = await AliadoModel.getByInstitucion(req.params.institucion);
+        if (!aliados || aliados.length === 0) {
+            return res.status(404).json({ error: 'No se encontraron aliados con esa institución' });
+        }
+        res.json(aliados);
+    } catch (error) {
+        res.status(500).json({ error: 'Error interno del servidor', details: error.message });
+    }
+});
+
+// Búsqueda por sector
+app.get('/api/aliado/sector/:sector', async (req, res) => {
+    try {
+        const aliados = await AliadoModel.getBySector(req.params.sector);
+        if (!aliados || aliados.length === 0) {
+            return res.status(404).json({ error: 'No se encontraron aliados en ese sector' });
+        }
+        res.json(aliados);
+    } catch (error) {
+        res.status(500).json({ error: 'Error interno del servidor', details: error.message });
+    }
+});
+
+// Búsqueda por municipio
+app.get('/api/aliado/municipio/:municipio', async (req, res) => {
+    try {
+        const aliados = await AliadoModel.getByMunicipio(req.params.municipio);
+        if (!aliados || aliados.length === 0) {
+            return res.status(404).json({ error: 'No se encontraron aliados en ese municipio' });
+        }
+        res.json(aliados);
+    } catch (error) {
+        res.status(500).json({ error: 'Error interno del servidor', details: error.message });
+    }
+});
+
+// Búsqueda por categoría de apoyo
+app.get('/api/aliado/categoria-apoyo/:categoria', async (req, res) => {
+    try {
+        const aliados = await AliadoModel.getByCategoriaApoyo(req.params.categoria);
+        if (!aliados || aliados.length === 0) {
+            return res.status(404).json({ error: 'No se encontraron aliados con apoyos en esa categoría' });
+        }
+        res.json(aliados);
+    } catch (error) {
+        res.status(500).json({ error: 'Error interno del servidor', details: error.message });
+    }
+});
+
+// Endpoint to get schools with necesidades matching aliado's apoyos
+app.get('/api/escuelas/matching-necesidades/:idAliado', async (req, res) => {
+    try {
+        const { idAliado } = req.params;
+        
+        if (!idAliado) {
+            return res.status(400).json({ error: 'El ID del aliado es obligatorio' });
+        }
+
+        // Verify aliado exists
+        const aliado = await AliadoModel.getAliadoById(idAliado);
+        if (!aliado) {
+            return res.status(404).json({ error: 'El aliado no existe' });
+        }
+
+        // Get matching schools
+        const escuelas = await EscuelaModel.getEscuelasByMatchingNecesidades(idAliado);
+        
+        if (!escuelas || escuelas.length === 0) {
+            return res.status(404).json({ 
+                error: 'No se encontraron escuelas con necesidades que coincidan con tus apoyos' 
+            });
+        }
+
+        res.status(200).json({ 
+            message: 'Escuelas encontradas exitosamente',
+            escuelas: escuelas 
+        });
+    } catch (error) {
+        console.error('Error al buscar escuelas con necesidades coincidentes:', error);
+        res.status(500).json({ 
+            error: 'Error interno del servidor', 
+            details: error.message 
+        });
+    }
+});
+
+// Endpoint to get aliados with apoyos matching escuela's necesidades
+app.get('/api/aliados/matching-apoyos/:CCT', async (req, res) => {
+    try {
+        const { CCT } = req.params;
+        
+        if (!CCT) {
+            return res.status(400).json({ error: 'El CCT de la escuela es obligatorio' });
+        }
+
+        // Verify escuela exists
+        const escuela = await EscuelaModel.getEscuelaById(CCT);
+        if (!escuela) {
+            return res.status(404).json({ error: 'La escuela no existe' });
+        }
+
+        // Get matching aliados
+        const aliados = await AliadoModel.getAliadosByMatchingApoyos(CCT);
+        
+        if (!aliados || aliados.length === 0) {
+            return res.status(404).json({ 
+                error: 'No se encontraron aliados con apoyos que coincidan con tus necesidades' 
+            });
+        }
+
+        res.status(200).json({ 
+            message: 'Aliados encontrados exitosamente',
+            aliados: aliados 
+        });
+    } catch (error) {
+        console.error('Error al buscar aliados con apoyos coincidentes:', error);
+        res.status(500).json({ 
+            error: 'Error interno del servidor', 
+            details: error.message 
+        });
+    }
+});
 

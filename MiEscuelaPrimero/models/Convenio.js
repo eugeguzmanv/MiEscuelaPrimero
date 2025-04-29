@@ -82,7 +82,15 @@ class Convenio {
 
     static async getAll() {
         try {
-            return await db('Convenio');
+            return await db('Convenio').orderBy('idConvenio', 'asc');
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    static async getNoValidados() {
+        try {
+            return await db('Convenio').where({ validacion_admin: false });
         } catch (error) {
             throw error;
         }

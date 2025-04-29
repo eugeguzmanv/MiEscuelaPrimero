@@ -9,39 +9,48 @@ import styles from './Main.module.css';
 const Main = () => {
   const [activeTab, setActiveTab] = useState('perfil');
   const [escuelaData, setEscuelaData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchEscuelaData = async () => {
       try {
-        const userEmail = sessionStorage.getItem('userEmail');
-        console.log('User email from session:', userEmail);
+        setLoading(true);
+        setError(null);
         
-        if (!userEmail) {
-          console.log('No user email found in session');
-          return;
+        // Try to get CCT from URL first
+        const urlParams = new URLSearchParams(window.location.search);
+        let cct = urlParams.get('cct');
+        
+        // If no CCT in URL, try to get from user email
+        if (!cct) {
+          const userEmail = sessionStorage.getItem('userEmail');
+          console.log('User email from session:', userEmail);
+          
+          if (!userEmail) {
+            throw new Error('No se encontró información de usuario');
+          }
+
+          // Get the representante data to get the CCT
+          const repreResponse = await fetch(`http://localhost:1000/api/representante/mail/${encodeURIComponent(userEmail)}`);
+          if (!repreResponse.ok) {
+            throw new Error('Error al obtener datos del representante');
+          }
+
+          const repreData = await repreResponse.json();
+          console.log('Representante data:', repreData);
+
+          if (!repreData.CCT) {
+            throw new Error('No se encontró el CCT en los datos del representante');
+          }
+
+          cct = repreData.CCT;
         }
 
-        // First, get the representante data to get the CCT
-        const repreResponse = await fetch(`http://localhost:1000/api/representante/mail/${userEmail}`);
-        if (!repreResponse.ok) {
-          console.error('Error fetching representante:', repreResponse);
-          return;
-        }
-
-        const repreData = await repreResponse.json();
-        console.log('Representante data:', repreData);
-
-        if (!repreData.CCT) {
-          console.log('No CCT found in representante data');
-          return;
-        }
-
-        console.log('Fetching escuela data for CCT:', repreData.CCT);
-        const response = await fetch(`http://localhost:1000/api/escuela/${repreData.CCT}`);
-        console.log('Response status:', response.status);
+        console.log('Fetching escuela data for CCT:', cct);
+        const response = await fetch(`http://localhost:1000/api/escuela/${encodeURIComponent(cct)}`);
         
         if (!response.ok) {
-          console.error('Error response:', response);
           throw new Error('Error al obtener datos de la escuela');
         }
         
@@ -50,6 +59,9 @@ const Main = () => {
         setEscuelaData(data);
       } catch (error) {
         console.error('Error fetching escuela data:', error);
+        setError(error.message);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -59,6 +71,14 @@ const Main = () => {
   const handleTabChange = (tab) => {
     setActiveTab(tab);
   };
+
+  if (loading) {
+    return <div className={styles.loadingContainer}>Cargando datos de la escuela...</div>;
+  }
+
+  if (error) {
+    return <div className={styles.errorContainer}>{error}</div>;
+  }
 
   return (
     <div className={styles.dashboardContainer}>
@@ -111,7 +131,7 @@ const Main = () => {
         <main className={styles.mainContent}>
           {activeTab === 'perfil' && (
             <div id="perfil-section" className={styles.contentSection}>
-              <PerfilSection />
+              <PerfilSection escuelaData={escuelaData} />
             </div>
           )}
           {activeTab === 'aliados' && (
@@ -126,7 +146,7 @@ const Main = () => {
           )}
           {activeTab === 'necesidades' && (
             <div id="necesidades-section" className={styles.contentSection}>
-              <NecesidadesSection />
+              <NecesidadesSection escuelaData={escuelaData} />
             </div>
           )}
         </main>

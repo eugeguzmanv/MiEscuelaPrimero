@@ -50,8 +50,21 @@ async function getApoyoById(idApoyo) {
     }
 }
 
+// Update validation status
+async function updateValidacionEstado(idApoyo) {
+    try {
+        const result = await db('Apoyo')
+            .where({ idApoyo })
+            .update({ Estado_validacion: true });
+        return result > 0;
+    } catch (error) {
+        throw error;
+    }
+}
+
 module.exports = {
     createApoyo,
     getApoyosByAliadoId,
-    getApoyoById
+    getApoyoById,
+    updateValidacionEstado
 };

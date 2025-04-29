@@ -86,7 +86,7 @@
 /* Button container */
 .buttonContainer {
   display: flex;
-  justify-content: center;
+  gap: 10px;
   margin-top: 15px;
 }
 
@@ -106,6 +106,20 @@
 
 .verNecesidadesBtn:hover {
   background: #E65000;
+}
+
+.verInfoBtn {
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.verInfoBtn:hover {
+  background-color: #357abd;
 }
 
 /* Status indicator */
@@ -151,6 +165,7 @@
   flex-direction: column;
   overflow: hidden;
   font-family: 'Montserrat', sans-serif;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 .modalHeader {
@@ -209,7 +224,6 @@
   background: #E65000;
 }
 
-/* Necesidades grid and cards */
 .necesidadesGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -285,26 +299,6 @@
 
 .necesidadesError {
   color: #dc3545;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .escuelasGrid {
-    grid-template-columns: 1fr;
-  }
-  
-  .escuelaCard {
-    margin: 10px 0;
-  }
-  
-  .necesidadesGrid {
-    grid-template-columns: 1fr;
-  }
-  
-  .modalContent {
-    width: 95%;
-    max-height: 95vh;
-  }
 }
 
 .messageContainer {
@@ -422,4 +416,168 @@
 .registrarConvenioBtn:disabled {
   background-color: #FF6B00;
   cursor: not-allowed;
+}
+
+.escuelaInfoSection,
+.representantesSection {
+  margin-bottom: 30px;
+}
+
+.escuelaInfoSection h4,
+.representantesSection h4 {
+  color: #2c3e50;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 8px;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.infoItem {
+  background-color: #f8f9fa;
+  padding: 12px;
+  border-radius: 6px;
+}
+
+.infoItem label {
+  color: #666;
+  font-size: 0.9em;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.infoItem p {
+  color: #2c3e50;
+  margin: 0;
+  font-weight: 500;
+}
+
+.descripcionSection {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 6px;
+  margin-top: 20px;
+}
+
+.descripcionSection p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.representantesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.representanteCard {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 6px;
+  border: 1px solid #eee;
+}
+
+.representanteCard h5 {
+  color: #2c3e50;
+  margin: 0 0 10px 0;
+  font-size: 1.1em;
+}
+
+.representanteInfo {
+  display: grid;
+  gap: 10px;
+}
+
+.noRepresentantes {
+  color: #666;
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+}
+
+.searchMenu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.searchGroup {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.searchGroup input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.searchGroup button {
+  padding: 0.5rem 0.7rem;
+  background-color: #FF6B00;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 0.9rem;
+  width: 80px;
+}
+
+.searchGroup button:hover {
+  background-color: #E65000;
+}
+
+.clearBtn {
+  align-self: flex-end;
+  padding: 0.5rem 0.7rem;
+  background-color: #FF6B00;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 0.9rem;
+  width: 120px;
+}
+
+.clearBtn:hover {
+  background-color: #E65000;
+}
+
+.matchingBtn {
+  background-color: #ff6b35;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+  margin: 10px 0;
+  width: 100%;
+  max-width: 400px;
+}
+
+.matchingBtn:hover {
+  background-color: #ff8c35;
+}
+
+.matchingBtn.active {
+  background-color: #ff8c35;
 } 

@@ -59,16 +59,6 @@ const Main = () => {
             >
               Proyectos
             </a>
-            <a 
-              href="#" 
-              className={`${styles.menuItem} ${activeTab === 'verificaciones' ? styles.active : ''}`} 
-              onClick={(e) => {
-                e.preventDefault();
-                handleTabChange('verificaciones');
-              }}
-            >
-              Verificaciones
-            </a>
           </nav>
         </div>
         <main className={styles.mainContent}>
@@ -90,11 +80,6 @@ const Main = () => {
           {activeTab === 'proyectos' && (
             <div id="proyectos-section" className={styles.contentSection}>
               <ProyectosAdmin />
-            </div>
-          )}
-          {activeTab === 'verificaciones' && (
-            <div id="verificaciones-section" className={styles.contentSection}>
-              <h2>Verificaciones Content Coming Soon</h2>
             </div>
           )}
         </main>

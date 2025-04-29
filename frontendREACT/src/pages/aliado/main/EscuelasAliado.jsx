@@ -15,6 +15,12 @@ const EscuelasAliado = ({ aliadoData }) => {
   const [selectedNecesidad, setSelectedNecesidad] = useState(null);
   const [firmaAliado, setFirmaAliado] = useState(false);
   const [message, setMessage] = useState(null);
+  const [searchNombre, setSearchNombre] = useState('');
+  const [searchCCT, setSearchCCT] = useState('');
+  const [searchMunicipio, setSearchMunicipio] = useState('');
+  const [searchNivel, setSearchNivel] = useState('');
+  const [searchCategoria, setSearchCategoria] = useState('');
+  const [isMatchingSearch, setIsMatchingSearch] = useState(false);
 
   useEffect(() => {
     const fetchEscuelas = async () => {
@@ -169,12 +175,211 @@ const EscuelasAliado = ({ aliadoData }) => {
     setFirmaAliado(false);
   };
 
+  const handleSearchNombre = async () => {
+    if (!searchNombre) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`http://localhost:1000/api/escuela/nombre/${encodeURIComponent(searchNombre)}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error('No se encontraron escuelas con ese nombre');
+      setEscuelas(Array.isArray(data) ? data : [data]);
+    } catch (err) {
+      setError(err.message);
+      setEscuelas([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearchCCT = async () => {
+    if (!searchCCT) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`http://localhost:1000/api/escuela/${encodeURIComponent(searchCCT)}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error('No se encontró la escuela con ese CCT');
+      setEscuelas(data ? [data] : []);
+    } catch (err) {
+      setError(err.message);
+      setEscuelas([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearchMunicipio = async () => {
+    if (!searchMunicipio) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`http://localhost:1000/api/escuela/municipio/${encodeURIComponent(searchMunicipio)}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error('No se encontraron escuelas en ese municipio');
+      setEscuelas(Array.isArray(data) ? data : [data]);
+    } catch (err) {
+      setError(err.message);
+      setEscuelas([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearchNivel = async () => {
+    if (!searchNivel) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`http://localhost:1000/api/escuela/nivel_educativo/${encodeURIComponent(searchNivel)}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error('No se encontraron escuelas con ese nivel educativo');
+      setEscuelas(Array.isArray(data) ? data : [data]);
+    } catch (err) {
+      setError(err.message);
+      setEscuelas([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearchCategoria = async () => {
+    if (!searchCategoria) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`http://localhost:1000/api/escuela/categoria-necesidad/${encodeURIComponent(searchCategoria)}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error('No se encontraron escuelas con necesidades en esa categoría');
+      setEscuelas(Array.isArray(data) ? data : [data]);
+    } catch (err) {
+      setError(err.message);
+      setEscuelas([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearchMatching = async () => {
+    if (!aliadoData?.idAliado) {
+      setError('No se pudo obtener la información del aliado');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setIsMatchingSearch(true);
+
+    try {
+      const response = await fetch(`http://localhost:1000/api/escuelas/matching-necesidades/${aliadoData.idAliado}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'No se encontraron escuelas coincidentes');
+      }
+
+      setEscuelas(data.escuelas || []);
+    } catch (err) {
+      setError(err.message);
+      setEscuelas([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClearSearch = async () => {
+    setSearchNombre('');
+    setSearchCCT('');
+    setSearchMunicipio('');
+    setSearchNivel('');
+    setSearchCategoria('');
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('http://localhost:1000/api/escuelas/');
+      const data = await response.json();
+      setEscuelas(data.escuelas || []);
+    } catch (err) {
+      setEscuelas([]);
+      setError('No se pudieron cargar las escuelas.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return <div className={styles.loadingContainer}>Cargando escuelas...</div>;
   }
 
   return (
     <div className={styles.escuelasContainer}>
+      <div className={styles.searchMenu}>
+        <div className={styles.searchGroup}>
+          <input
+            type="text"
+            placeholder="Buscar por nombre"
+            value={searchNombre}
+            onChange={e => setSearchNombre(e.target.value)}
+            onKeyPress={e => e.key === 'Enter' && handleSearchNombre()}
+          />
+          <button type="button" onClick={handleSearchNombre}>Buscar</button>
+        </div>
+        <div className={styles.searchGroup}>
+          <input
+            type="text"
+            placeholder="Buscar por CCT"
+            value={searchCCT}
+            onChange={e => setSearchCCT(e.target.value)}
+            onKeyPress={e => e.key === 'Enter' && handleSearchCCT()}
+          />
+          <button type="button" onClick={handleSearchCCT}>Buscar</button>
+        </div>
+        <div className={styles.searchGroup}>
+          <input
+            type="text"
+            placeholder="Buscar por municipio"
+            value={searchMunicipio}
+            onChange={e => setSearchMunicipio(e.target.value)}
+            onKeyPress={e => e.key === 'Enter' && handleSearchMunicipio()}
+          />
+          <button type="button" onClick={handleSearchMunicipio}>Buscar</button>
+        </div>
+        <div className={styles.searchGroup}>
+          <input
+            type="text"
+            placeholder="Buscar por nivel educativo"
+            value={searchNivel}
+            onChange={e => setSearchNivel(e.target.value)}
+            onKeyPress={e => e.key === 'Enter' && handleSearchNivel()}
+          />
+          <button type="button" onClick={handleSearchNivel}>Buscar</button>
+        </div>
+        <div className={styles.searchGroup}>
+          <input
+            type="text"
+            placeholder="Buscar por categoría de necesidad"
+            value={searchCategoria}
+            onChange={e => setSearchCategoria(e.target.value)}
+            onKeyPress={e => e.key === 'Enter' && handleSearchCategoria()}
+          />
+          <button type="button" onClick={handleSearchCategoria}>Buscar</button>
+        </div>
+        <button 
+          type="button" 
+          onClick={handleSearchMatching} 
+          className={`${styles.matchingBtn} ${isMatchingSearch ? styles.active : ''}`}
+        >
+          Mostrar escuelas con necesidades coincidentes
+        </button>
+        <button 
+          type="button" 
+          onClick={handleClearSearch} 
+          className={styles.clearBtn}
+        >
+          Limpiar filtros
+        </button>
+      </div>
+
       {error && (
         <div className={styles.errorContainer}>
           <p>{error}</p>
@@ -190,34 +395,34 @@ const EscuelasAliado = ({ aliadoData }) => {
       {!error && escuelas.length === 0 ? (
         <div className={styles.noEscuelas}>No hay escuelas disponibles</div>
       ) : (
-        <div className={styles.escuelasGrid}>
+      <div className={styles.escuelasGrid}>
           {escuelas.map((escuela) => (
             <div key={escuela.CCT} className={styles.escuelaCard}>
               <h2>{escuela.nombre}</h2>
-              <div className={styles.infoGroup}>
-                <label>CCT:</label>
+          <div className={styles.infoGroup}>
+            <label>CCT:</label>
                 <p>{escuela.CCT}</p>
-              </div>
-              <div className={styles.infoGroup}>
-                <label>Nivel Educativo:</label>
+          </div>
+          <div className={styles.infoGroup}>
+            <label>Nivel Educativo:</label>
                 <p>{escuela.nivel_educativo}</p>
-              </div>
-              <div className={styles.direccionGroup}>
-                <label>Dirección:</label>
-                <div className={styles.direccionDetails}>
-                  <p>Calle: {escuela.direccion.calle}</p>
-                  <p>Número: {escuela.direccion.numero}</p>
-                  <p>Colonia: {escuela.direccion.colonia}</p>
-                  <p>Municipio: {escuela.direccion.municipio}</p>
-                </div>
-              </div>
-              <div className={styles.infoGroup}>
-                <label>Número de estudiantes:</label>
-                <p>{escuela.numero_alumnos}</p>
-              </div>
+          </div>
+          <div className={styles.direccionGroup}>
+            <label>Dirección:</label>
+            <div className={styles.direccionDetails}>
+                  <p>Calle: {escuela.direccion?.calle || escuela.calle || 'No disponible'}</p>
+                  <p>Número: {escuela.direccion?.numero || escuela.numero || 'No disponible'}</p>
+                  <p>Colonia: {escuela.direccion?.colonia || escuela.colonia || 'No disponible'}</p>
+                  <p>Municipio: {escuela.direccion?.municipio || escuela.municipio || 'No disponible'}</p>
+            </div>
+          </div>
+          <div className={styles.infoGroup}>
+            <label>Número de estudiantes:</label>
+                <p>{escuela.numero_alumnos || escuela.numero_estudiantes || 'No disponible'}</p>
+          </div>
               {escuela.descripcion && (
-                <div className={styles.descripcionGroup}>
-                  <label>Descripción:</label>
+          <div className={styles.descripcionGroup}>
+            <label>Descripción:</label>
                   <p>{escuela.descripcion}</p>
                 </div>
               )}
@@ -233,18 +438,18 @@ const EscuelasAliado = ({ aliadoData }) => {
                         <p><strong>Correo:</strong> {representante.correo_electronico}</p>
                       </div>
                     ))}
-                  </div>
-                </div>
+          </div>
+        </div>
               )}
-              
+
               <div className={styles.buttonContainer}>
                 <button className={styles.verNecesidadesBtn} onClick={() => fetchNecesidadesForEscuela(escuela)}>
                   Ver Necesidades
                 </button>
               </div>
-            </div>
+          </div>
           ))}
-        </div>
+          </div>
       )}
 
       {/* Modal for displaying necesidades */}
@@ -272,14 +477,14 @@ const EscuelasAliado = ({ aliadoData }) => {
                     <div key={necesidad.idNecesidad} className={styles.necesidadCard}>
                       <div className={styles.necesidadHeader}>
                         <h4>{necesidad.Categoria}</h4>
-                      </div>
+          </div>
                       <div className={styles.necesidadBody}>
                         <p><strong>Subcategoría:</strong> {necesidad.Sub_categoria}</p>
                         <p><strong>Fecha:</strong> {formatDate(necesidad.Fecha)}</p>
                         <div className={styles.descripcionNecesidad}>
                           <p><strong>Descripción:</strong></p>
                           <p>{necesidad.Descripcion}</p>
-                        </div>
+          </div>
                         {necesidad.Prioridad && (
                           <p><strong>Prioridad:</strong> {necesidad.Prioridad}</p>
                         )}
@@ -298,12 +503,12 @@ const EscuelasAliado = ({ aliadoData }) => {
                         >
                           Colaborar con esta escuela
                         </button>
-                      </div>
-                    </div>
+          </div>
+        </div>
                   ))}
-                </div>
+          </div>
               )}
-            </div>
+          </div>
             <div className={styles.modalFooter}>
               <button className={styles.closeModalButton} onClick={closeNecesidadesModal}>
                 Cerrar
@@ -365,8 +570,8 @@ const EscuelasAliado = ({ aliadoData }) => {
                   </label>
                   <p className={styles.requiredNote}>* Campo obligatorio</p>
                 </div>
-              </div>
-            </div>
+          </div>
+          </div>
             <div className={styles.modalFooter}>
               <button 
                 className={styles.registrarConvenioBtn}
