@@ -175,8 +175,22 @@ const AliadosSection = ({ escuelaData }) => {
       setApoyosError(null);
       setSelectedAliado(aliado);
       
+      // Ensure we have either idAliado or email to fetch the data
       if (!aliado.idAliado) {
-        throw new Error('ID del aliado no disponible');
+        // If no idAliado, try to fetch it using the email
+        const emailToUse = aliado.correo_electronico || aliado.correo;
+        
+        if (!emailToUse) {
+          throw new Error('No se pudo identificar al aliado');
+        }
+
+        // First fetch the complete aliado data to get the idAliado
+        const aliadoResponse = await fetch(`http://localhost:1000/api/aliadoCor/${encodeURIComponent(emailToUse)}`);
+        if (!aliadoResponse.ok) {
+          throw new Error('No se pudo obtener la información del aliado');
+        }
+        const aliadoData = await aliadoResponse.json();
+        aliado = aliadoData; // Update the aliado object with complete data
       }
       
       const response = await fetch(`http://localhost:1000/api/apoyos/aliado/${aliado.idAliado}`);

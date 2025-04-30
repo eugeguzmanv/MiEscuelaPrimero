@@ -65,8 +65,14 @@ const AliadosAdmin = () => {
     setConstanciaFiscalData(null);
 
     try {
-      // Using correo instead of correo_electronico
-      const aliadoResponse = await fetch(`http://localhost:1000/api/aliadoCor/${encodeURIComponent(aliado.correo)}`);
+      // Use correo_electronico if available, otherwise fall back to correo
+      const emailToUse = aliado.correo_electronico || aliado.correo;
+      
+      if (!emailToUse) {
+        throw new Error('No se encontró el correo del aliado');
+      }
+
+      const aliadoResponse = await fetch(`http://localhost:1000/api/aliadoCor/${encodeURIComponent(emailToUse)}`);
       if (!aliadoResponse.ok) {
         throw new Error('No se pudo obtener información del aliado');
       }
